@@ -6,6 +6,12 @@
       "sourceType": "github",
       "skillPath": "skills/sql-code-review/SKILL.md",
       "computedHash": "ae157a0eeaa4c4712e850e85d71d25f2a53168f94011f3a08b888424f41220ee"
+    },
+    "build-with-agent-team": {
+      "source": "github/coleam00/context-engineering-intro",
+      "sourceType": "github",
+      "skillPath": "skills/build-with-agent-team/SKILL.md",
+      "computedHash": "3d1a590a7a90b581427d7d6ab6012235c92158725ebecf827d3a441b278c7429"
     }
   }
 }
