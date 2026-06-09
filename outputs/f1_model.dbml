@@ -1,0 +1,177 @@
+// F1 SETUPS26 - Data Model
+// Pega esto en: https://dbdiagram.io/d
+// =====================================
+
+Table dim_season {
+  season_id       int         [pk, increment]
+  year            smallint    [unique, not null]
+  regulation_era  varchar(50) [not null, note: 'Pre-2022 / 2022-25 / 2026+']
+  max_points      smallint    [not null, default: 26]
+  active_flag     bit         [not null, default: 1]
+}
+
+Table dim_circuit {
+  circuit_id      int          [pk, increment]
+  circuit_code    char(3)      [unique, not null, note: 'MON, SPA, SIL']
+  circuit_name    varchar(100) [not null]
+  country         varchar(60)  [not null]
+  city            varchar(60)  [not null]
+  circuit_type    varchar(20)  [not null, note: 'Street / Permanent / Hybrid']
+  lap_length_km   decimal(5,3) [not null]
+  total_laps      smallint
+  altitude_m      smallint
+}
+
+Table dim_constructor {
+  constructor_id      int          [pk, increment]
+  constructor_code    char(3)      [unique, not null, note: 'RBR, MER, FER']
+  full_name           varchar(100) [not null]
+  nationality         varchar(60)  [not null]
+  power_unit          varchar(60)  [not null]
+  entry_season_year   smallint     [not null]
+  active_flag         bit          [not null, default: 1]
+}
+
+Table dim_driver {
+  driver_id           int         [pk, increment]
+  driver_code         char(3)     [unique, not null, note: 'VER, HAM, LEC']
+  permanent_number    smallint
+  first_name          varchar(60) [not null]
+  last_name           varchar(60) [not null]
+  nationality         varchar(60) [not null]
+  date_of_birth       date
+  active_flag         bit         [not null, default: 1]
+}
+
+Table bridge_driver_constructor {
+  bridge_id       int         [pk, increment]
+  season_id       int         [not null, ref: > dim_season.season_id]
+  driver_id       int         [not null, ref: > dim_driver.driver_id]
+  constructor_id  int         [not null, ref: > dim_constructor.constructor_id]
+  car_number      tinyint     [not null]
+  seat_role       varchar(20) [not null, default: 'Race', note: 'Race / Reserve / Test']
+
+  indexes {
+    (season_id, driver_id) [unique]
+  }
+}
+
+Table fact_grand_prix {
+  gp_id           int          [pk, increment]
+  season_id       int          [not null, ref: > dim_season.season_id]
+  circuit_id      int          [not null, ref: > dim_circuit.circuit_id]
+  round_number    tinyint      [not null]
+  gp_name         varchar(100) [not null]
+  race_date       date         [not null]
+  weather_main    varchar(30)  [note: 'Dry / Wet / Mixed']
+  safety_car_laps tinyint
+  vsc_laps        tinyint
+
+  indexes {
+    (season_id, round_number) [unique]
+  }
+}
+
+Table fact_qualifying {
+  qual_id         int     [pk, increment]
+  gp_id           int     [not null, ref: > fact_grand_prix.gp_id]
+  driver_id       int     [not null, ref: > dim_driver.driver_id]
+  constructor_id  int     [not null, ref: > dim_constructor.constructor_id]
+  q1_time_ms      int
+  q2_time_ms      int
+  q3_time_ms      int
+  best_time_ms    int
+  grid_position   tinyint [not null]
+  eliminated_q1   bit     [not null, default: 0]
+  eliminated_q2   bit     [not null, default: 0]
+
+  indexes {
+    (gp_id, driver_id) [unique]
+  }
+}
+
+Table fact_race_result {
+  result_id           int           [pk, increment]
+  gp_id               int           [not null, ref: > fact_grand_prix.gp_id]
+  driver_id           int           [not null, ref: > dim_driver.driver_id]
+  constructor_id      int           [not null, ref: > dim_constructor.constructor_id]
+  finish_position     tinyint       [note: 'NULL = DNF/DNS']
+  grid_position       tinyint       [not null]
+  points_scored       decimal(5,2)  [not null, default: 0]
+  laps_completed      smallint      [not null]
+  race_time_ms        bigint
+  gap_to_leader_ms    int
+  fastest_lap_flag    bit           [not null, default: 0]
+  dnf_reason          varchar(60)   [note: 'Accident / Engine / Gearbox...']
+  pit_stop_count      tinyint
+
+  indexes {
+    (gp_id, driver_id) [unique]
+  }
+}
+
+Table fact_car_setup {
+  setup_id                    int           [pk, increment]
+  gp_id                       int           [not null, ref: > fact_grand_prix.gp_id]
+  constructor_id              int           [not null, ref: > dim_constructor.constructor_id]
+  session_type                varchar(20)   [not null, note: 'FP1/FP2/FP3/Q/R/Sprint']
+  // Aerodynamics
+  front_wing_angle            decimal(5,2)
+  rear_wing_angle             decimal(5,2)
+  // Suspension
+  front_suspension            tinyint       [note: '1-11 stiffness']
+  rear_suspension             tinyint
+  front_anti_roll_bar         tinyint
+  rear_anti_roll_bar          tinyint
+  front_ride_height_mm        decimal(4,1)
+  rear_ride_height_mm         decimal(4,1)
+  // Transmission
+  differential_on_throttle    tinyint       [note: '% 50-100']
+  differential_off_throttle   tinyint
+  // Brakes
+  brake_pressure_pct          tinyint       [note: '% 80-100']
+  brake_bias_pct              decimal(4,1)  [note: '% front bias']
+  // Tyres
+  tyre_compound               varchar(10)   [note: 'Soft/Medium/Hard/Inter/Wet']
+  front_camber_deg            decimal(4,2)
+  rear_camber_deg             decimal(4,2)
+  front_toe_deg               decimal(4,3)
+  rear_toe_deg                decimal(4,3)
+  front_tyre_pressure_psi     decimal(4,1)
+  rear_tyre_pressure_psi      decimal(4,1)
+  // Meta
+  source                      varchar(30)   [note: 'Official/Community/Estimated']
+  notes                       varchar(500)
+  created_at                  datetime      [not null]
+}
+
+Table fact_pit_stop {
+  pit_stop_id     int         [pk, increment]
+  gp_id           int         [not null, ref: > fact_grand_prix.gp_id]
+  driver_id       int         [not null, ref: > dim_driver.driver_id]
+  stop_number     tinyint     [not null]
+  lap_number      tinyint     [not null]
+  pit_duration_ms int         [not null]
+  tyre_in         varchar(10) [not null]
+  tyre_out        varchar(10) [not null]
+
+  indexes {
+    (gp_id, driver_id, stop_number) [unique]
+  }
+}
+
+Table fact_championship_standing {
+  standing_id           int          [pk, increment]
+  season_id             int          [not null, ref: > dim_season.season_id]
+  after_round           tinyint      [not null]
+  driver_id             int          [not null, ref: > dim_driver.driver_id]
+  constructor_id        int          [not null, ref: > dim_constructor.constructor_id]
+  driver_points         decimal(7,2) [not null, default: 0]
+  driver_position       tinyint      [not null]
+  constructor_points    decimal(7,2) [not null, default: 0]
+  constructor_position  tinyint      [not null]
+
+  indexes {
+    (season_id, after_round, driver_id) [unique]
+  }
+}
