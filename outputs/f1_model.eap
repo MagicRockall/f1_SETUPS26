@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ERwin Data Model XML (importable via ERwin DM / ERwin API)
+  Format: ERwin XML 9.x compatible
+  Domain: F1 Racing / Motorsport
+  Target: SQL Server 2019
+  Generated: 2026-06-09
+-->
+<ERwinModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            ModelName="F1_SETUPS26_DataModel"
+            TargetServer="SQL Server 2019"
+            ModelType="Physical"
+            Version="9.0">
+
+  <Entities>
+
+    <!-- ===== dim_season ===== -->
+    <Entity name="dim_season" schema="dbo" type="Table">
+      <Attributes>
+        <Attribute name="season_id"      datatype="INT"          nullable="false" pk="true" identity="true"/>
+        <Attribute name="year"           datatype="SMALLINT"     nullable="false"/>
+        <Attribute name="regulation_era" datatype="VARCHAR(50)"  nullable="false"/>
+        <Attribute name="max_points"     datatype="SMALLINT"     nullable="false" default="26"/>
+        <Attribute name="active_flag"    datatype="BIT"          nullable="false" default="1"/>
+      </Attributes>
+      <Indexes>
+        <Index name="pk_dim_season" type="PrimaryKey"><Column name="season_id"/></Index>
+        <Index name="uq_dim_season_year" type="Unique"><Column name="year"/></Index>
+      </Indexes>
+    </Entity>
+
+    <!-- ===== dim_circuit ===== -->
+    <Entity name="dim_circuit" schema="dbo" type="Table">
+      <Attributes>
+        <Attribute name="circuit_id"    datatype="INT"          nullable="false" pk="true" identity="true"/>
+        <Attribute name="circuit_code"  datatype="CHAR(3)"      nullable="false"/>
+        <Attribute name="circuit_name"  datatype="VARCHAR(100)" nullable="false"/>
+        <Attribute name="country"       datatype="VARCHAR(60)"  nullable="false"/>
+        <Attribute name="city"          datatype="VARCHAR(60)"  nullable="false"/>
+        <Attribute name="circuit_type"  datatype="VARCHAR(20)"  nullable="false"/>
+        <Attribute name="lap_length_km" datatype="DECIMAL(5,3)" nullable="false"/>
+        <Attribute name="total_laps"    datatype="SMALLINT"     nullable="true"/>
+        <Attribute name="altitude_m"    datatype="SMALLINT"     nullable="true"/>
+      </Attributes>
+      <Indexes>
+        <Index name="pk_dim_circuit" type="PrimaryKey"><Column name="circuit_id"/></Index>
+        <Index name="uq_dim_circuit_code" type="Unique"><Column name="circuit_code"/></Index>
+      </Indexes>
+    </Entity>
+
+    <!-- ===== dim_constructor ===== -->
+    <Entity name="dim_constructor" schema="dbo" type="Table">
+      <Attributes>
+        <Attribute name="constructor_id"    datatype="INT"          nullable="false" pk="true" identity="true"/>
+        <Attribute name="constructor_code"  datatype="CHAR(3)"      nullable="false"/>
+        <Attribute name="full_name"         datatype="VARCHAR(100)" nullable="false"/>
+        <Attribute name="nationality"       datatype="VARCHAR(60)"  nullable="false"/>
+        <Attribute name="power_unit"        datatype="VARCHAR(60)"  nullable="false"/>
+        <Attribute name="entry_season_year" datatype="SMALLINT"     nullable="false"/>
+        <Attribute name="active_flag"       datatype="BIT"          nullable="false" default="1"/>
+      </Attributes>
+      <Indexes>
+        <Index name="pk_dim_constructor" type="PrimaryKey"><Column name="constructor_id"/></Index>
+        <Index name="uq_dim_constructor_code" type="Unique"><Column name="constructor_code"/></Index>
+      </Indexes>
+    </Entity>
+
+    <!-- ===== dim_driver ===== -->
+    <Entity name="dim_driver" schema="dbo" type="Table">
+      <Attributes>
+        <Attribute name="driver_id"        datatype="INT"          nullable="false" pk="true" identity="true"/>
+        <Attribute name="driver_code"      datatype="CHAR(3)"      nullable="false"/>
+        <Attribute name="permanent_number" datatype="SMALLINT"     nullable="true"/>
+        <Attribute name="first_name"       datatype="VARCHAR(60)"  nullable="false"/>
+        <Attribute name="last_name"        datatype="VARCHAR(60)"  nullable="false"/>
+        <Attribute name="nationality"      datatype="VARCHAR(60)"  nullable="false"/>
+        <Attribute name="date_of_birth"    datatype="DATE"         nullable="true"/>
+        <Attribute name="active_flag"      datatype="BIT"          nullable="false" default="1"/>
+      </Attributes>
+      <Indexes>
+        <Index name="pk_dim_driver" type="PrimaryKey"><Column name="driver_id"/></Index>
+        <Index name="uq_dim_driver_code" type="Unique"><Column name="driver_code"/></Index>
+      </Indexes>
+    </Entity>
+
+    <!-- ===== bridge_driver_constructor ===== -->
+    <Entity name="bridge_driver_constructor" schema="dbo" type="Table">
+      <Attributes>
+        <Attribute name="bridge_id"      datatype="INT"         nullable="false" pk="true" identity="true"/>
+        <Attribute name="season_id"      datatype="INT"         nullable="false" fk="true"/>
+        <Attribute name="driver_id"      datatype="INT"         nullable="false" fk="true"/>
+        <Attribute name="constructor_id" datatype="INT"         nullable="false" fk="true"/>
+        <Attribute name="car_number"     datatype="TINYINT"     nullable="false"/>
+        <Attribute name="seat_role"      datatype="VARCHAR(20)" nullable="false" default="Race"/>
+      </Attributes>
+      <Indexes>
+        <Index name="pk_bridge_drvcon" type="PrimaryKey"><Column name="bridge_id"/></Index>
+        <Index name="uq_bridge_drvcon" type="Unique"><Column name="season_id"/><Column name="driver_id"/></Index>
+      </Indexes>
+    </Entity>
+
+    <!-- ===== fact_grand_prix ===== -->
+    <Entity name="fact_grand_prix" schema="dbo" type="Table">
+      <Attributes>
+        <Attribute name="gp_id"           datatype="INT"         nullable="false" pk="true" identity="true"/>
+        <Attribute name="season_id"       datatype="INT"         nullable="false" fk="true"/>
+        <Attribute name="circuit_id"      datatype="INT"         nullable="false" fk="true"/>
+        <Attribute name="round_number"    datatype="TINYINT"     nullable="false"/>
+        <Attribute name="gp_name"         datatype="VARCHAR(100)"nullable="false"/>
+        <Attribute name="race_date"       datatype="DATE"        nullable="false"/>
+        <Attribute name="weather_main"    datatype="VARCHAR(30)" nullable="true"/>
+        <Attribute name="safety_car_laps" datatype="TINYINT"     nullable="true"/>
+        <Attribute name="vsc_laps"        datatype="TINYINT"     nullable="true"/>
+      </Attributes>
+      <Indexes>
+        <Index name="pk_fact_gp" type="PrimaryKey"><Column name="gp_id"/></Index>
+        <Index name="uq_fact_gp" type="Unique"><Column name="season_id"/><Column name="round_number"/></Index>
+        <Index name="ix_factgp_season"  type="NonUnique"><Column name="season_id"/></Index>
+        <Index name="ix_factgp_circuit" type="NonUnique"><Column name="circuit_id"/></Index>
+      </Indexes>
+    </Entity>
+
+    <!-- ===== fact_qualifying ===== -->
+    <Entity name="fact_qualifying" schema="dbo" type="Table">
+      <Attributes>
+        <Attribute name="qual_id"        datatype="INT"      nullable="false" pk="true" identity="true"/>
+        <Attribute name="gp_id"          datatype="INT"      nullable="false" fk="true"/>
+        <Attribute name="driver_id"      datatype="INT"      nullable="false" fk="true"/>
+        <Attribute name="constructor_id" datatype="INT"      nullable="false" fk="true"/>
+        <Attribute name="q1_time_ms"     datatype="INT"      nullable="true"/>
+        <Attribute name="q2_time_ms"     datatype="INT"      nullable="true"/>
+        <Attribute name="q3_time_ms"     datatype="INT"      nullable="true"/>
+        <Attribute name="best_time_ms"   datatype="INT"      nullable="true"/>
+        <Attribute name="grid_position"  datatype="TINYINT"  nullable="false"/>
+        <Attribute name="eliminated_q1"  datatype="BIT"      nullable="false" default="0"/>
+        <Attribute name="eliminated_q2"  datatype="BIT"      nullable="false" default="0"/>
+      </Attributes>
+      <Indexes>
+        <Index name="pk_fact_qual" type="PrimaryKey"><Column name="qual_id"/></Index>
+        <Index name="uq_fact_qual" type="Unique"><Column name="gp_id"/><Column name="driver_id"/></Index>
+      </Indexes>
+    </Entity>
+
+    <!-- ===== fact_race_result ===== -->
+    <Entity name="fact_race_result" schema="dbo" type="Table">
+      <Attributes>
+        <Attribute name="result_id"         datatype="INT"           nullable="false" pk="true" identity="true"/>
+        <Attribute name="gp_id"             datatype="INT"           nullable="false" fk="true"/>
+        <Attribute name="driver_id"         datatype="INT"           nullable="false" fk="true"/>
+        <Attribute name="constructor_id"    datatype="INT"           nullable="false" fk="true"/>
+        <Attribute name="finish_position"   datatype="TINYINT"       nullable="true"/>
+        <Attribute name="grid_position"     datatype="TINYINT"       nullable="false"/>
+        <Attribute name="points_scored"     datatype="DECIMAL(5,2)"  nullable="false" default="0"/>
+        <Attribute name="laps_completed"    datatype="SMALLINT"      nullable="false"/>
+        <Attribute name="race_time_ms"      datatype="BIGINT"        nullable="true"/>
+        <Attribute name="gap_to_leader_ms"  datatype="INT"           nullable="true"/>
+        <Attribute name="fastest_lap_flag"  datatype="BIT"           nullable="false" default="0"/>
+        <Attribute name="dnf_reason"        datatype="VARCHAR(60)"   nullable="true"/>
+        <Attribute name="pit_stop_count"    datatype="TINYINT"       nullable="true"/>
+      </Attributes>
+      <Indexes>
+        <Index name="pk_fact_rr" type="PrimaryKey"><Column name="result_id"/></Index>
+        <Index name="uq_fact_rr" type="Unique"><Column name="gp_id"/><Column name="driver_id"/></Index>
+        <Index name="ix_factrr_driver" type="NonUnique"><Column name="driver_id"/></Index>
+        <Index name="ix_factrr_gp"     type="NonUnique"><Column name="gp_id"/></Index>
+      </Indexes>
+    </Entity>
+
+    <!-- ===== fact_car_setup ===== -->
+    <Entity name="fact_car_setup" schema="dbo" type="Table">
+      <Attributes>
+        <Attribute name="setup_id"                   datatype="INT"           nullable="false" pk="true" identity="true"/>
+        <Attribute name="gp_id"                      datatype="INT"           nullable="false" fk="true"/>
+        <Attribute name="constructor_id"             datatype="INT"           nullable="false" fk="true"/>
+        <Attribute name="session_type"               datatype="VARCHAR(20)"   nullable="false"/>
+        <Attribute name="front_wing_angle"           datatype="DECIMAL(5,2)"  nullable="true"/>
+        <Attribute name="rear_wing_angle"            datatype="DECIMAL(5,2)"  nullable="true"/>
+        <Attribute name="front_suspension"           datatype="TINYINT"       nullable="true"/>
+        <Attribute name="rear_suspension"            datatype="TINYINT"       nullable="true"/>
+        <Attribute name="front_anti_roll_bar"        datatype="TINYINT"       nullable="true"/>
+        <Attribute name="rear_anti_roll_bar"         datatype="TINYINT"       nullable="true"/>
+        <Attribute name="front_ride_height_mm"       datatype="DECIMAL(4,1)"  nullable="true"/>
+        <Attribute name="rear_ride_height_mm"        datatype="DECIMAL(4,1)"  nullable="true"/>
+        <Attribute name="differential_on_throttle"   datatype="TINYINT"       nullable="true"/>
+        <Attribute name="differential_off_throttle"  datatype="TINYINT"       nullable="true"/>
+        <Attribute name="brake_pressure_pct"         datatype="TINYINT"       nullable="true"/>
+        <Attribute name="brake_bias_pct"             datatype="DECIMAL(4,1)"  nullable="true"/>
+        <Attribute name="tyre_compound"              datatype="VARCHAR(10)"   nullable="true"/>
+        <Attribute name="front_camber_deg"           datatype="DECIMAL(4,2)"  nullable="true"/>
+        <Attribute name="rear_camber_deg"            datatype="DECIMAL(4,2)"  nullable="true"/>
+        <Attribute name="front_toe_deg"              datatype="DECIMAL(4,3)"  nullable="true"/>
+        <Attribute name="rear_toe_deg"               datatype="DECIMAL(4,3)"  nullable="true"/>
+        <Attribute name="front_tyre_pressure_psi"    datatype="DECIMAL(4,1)"  nullable="true"/>
+        <Attribute name="rear_tyre_pressure_psi"     datatype="DECIMAL(4,1)"  nullable="true"/>
+        <Attribute name="source"                     datatype="VARCHAR(30)"   nullable="true"/>
+        <Attribute name="notes"                      datatype="NVARCHAR(500)" nullable="true"/>
+        <Attribute name="created_at"                 datatype="DATETIME2"     nullable="false" default="GETDATE()"/>
+      </Attributes>
+      <Indexes>
+        <Index name="pk_fact_setup" type="PrimaryKey"><Column name="setup_id"/></Index>
+        <Index name="ix_factsetup_gp"  type="NonUnique"><Column name="gp_id"/></Index>
+        <Index name="ix_factsetup_con" type="NonUnique"><Column name="constructor_id"/></Index>
+      </Indexes>
+    </Entity>
+
+    <!-- ===== fact_pit_stop ===== -->
+    <Entity name="fact_pit_stop" schema="dbo" type="Table">
+      <Attributes>
+        <Attribute name="pit_stop_id"     datatype="INT"         nullable="false" pk="true" identity="true"/>
+        <Attribute name="gp_id"           datatype="INT"         nullable="false" fk="true"/>
+        <Attribute name="driver_id"       datatype="INT"         nullable="false" fk="true"/>
+        <Attribute name="stop_number"     datatype="TINYINT"     nullable="false"/>
+        <Attribute name="lap_number"      datatype="TINYINT"     nullable="false"/>
+        <Attribute name="pit_duration_ms" datatype="INT"         nullable="false"/>
+        <Attribute name="tyre_in"         datatype="VARCHAR(10)" nullable="false"/>
+        <Attribute name="tyre_out"        datatype="VARCHAR(10)" nullable="false"/>
+      </Attributes>
+      <Indexes>
+        <Index name="pk_fact_pit" type="PrimaryKey"><Column name="pit_stop_id"/></Index>
+        <Index name="uq_fact_pit" type="Unique"><Column name="gp_id"/><Column name="driver_id"/><Column name="stop_number"/></Index>
+        <Index name="ix_factpit_driver" type="NonUnique"><Column name="driver_id"/></Index>
+      </Indexes>
+    </Entity>
+
+    <!-- ===== fact_championship_standing ===== -->
+    <Entity name="fact_championship_standing" schema="dbo" type="Table">
+      <Attributes>
+        <Attribute name="standing_id"          datatype="INT"           nullable="false" pk="true" identity="true"/>
+        <Attribute name="season_id"            datatype="INT"           nullable="false" fk="true"/>
+        <Attribute name="after_round"          datatype="TINYINT"       nullable="false"/>
+        <Attribute name="driver_id"            datatype="INT"           nullable="false" fk="true"/>
+        <Attribute name="constructor_id"       datatype="INT"           nullable="false" fk="true"/>
+        <Attribute name="driver_points"        datatype="DECIMAL(7,2)"  nullable="false" default="0"/>
+        <Attribute name="driver_position"      datatype="TINYINT"       nullable="false"/>
+        <Attribute name="constructor_points"   datatype="DECIMAL(7,2)"  nullable="false" default="0"/>
+        <Attribute name="constructor_position" datatype="TINYINT"       nullable="false"/>
+      </Attributes>
+      <Indexes>
+        <Index name="pk_fact_cs" type="PrimaryKey"><Column name="standing_id"/></Index>
+        <Index name="uq_fact_cs" type="Unique"><Column name="season_id"/><Column name="after_round"/><Column name="driver_id"/></Index>
+        <Index name="ix_factcs_season" type="NonUnique"><Column name="season_id"/></Index>
+      </Indexes>
+    </Entity>
+
+  </Entities>
+
+  <!-- ===================================================== -->
+  <!-- RELACIONES / FOREIGN KEYS                              -->
+  <!-- ===================================================== -->
+  <Relationships>
+
+    <Relationship name="fk_bdc_season"
+                  parentEntity="dim_season" childEntity="bridge_driver_constructor"
+                  cardinality="OneToMany" identifying="true">
+      <KeyColumns parent="season_id" child="season_id"/>
+    </Relationship>
+
+    <Relationship name="fk_bdc_driver"
+                  parentEntity="dim_driver" childEntity="bridge_driver_constructor"
+                  cardinality="OneToMany" identifying="true">
+      <KeyColumns parent="driver_id" child="driver_id"/>
+    </Relationship>
+
+    <Relationship name="fk_bdc_constructor"
+                  parentEntity="dim_constructor" childEntity="bridge_driver_constructor"
+                  cardinality="OneToMany" identifying="true">
+      <KeyColumns parent="constructor_id" child="constructor_id"/>
+    </Relationship>
+
+    <Relationship name="fk_fgp_season"
+                  parentEntity="dim_season" childEntity="fact_grand_prix"
+                  cardinality="OneToMany" identifying="true">
+      <KeyColumns parent="season_id" child="season_id"/>
+    </Relationship>
+
+    <Relationship name="fk_fgp_circuit"
+                  parentEntity="dim_circuit" childEntity="fact_grand_prix"
+                  cardinality="OneToMany" identifying="false">
+      <KeyColumns parent="circuit_id" child="circuit_id"/>
+    </Relationship>
+
+    <Relationship name="fk_fq_gp"
+                  parentEntity="fact_grand_prix" childEntity="fact_qualifying"
+                  cardinality="OneToMany" identifying="true">
+      <KeyColumns parent="gp_id" child="gp_id"/>
+    </Relationship>
+
+    <Relationship name="fk_fq_driver"
+                  parentEntity="dim_driver" childEntity="fact_qualifying"
+                  cardinality="OneToMany" identifying="false">
+      <KeyColumns parent="driver_id" child="driver_id"/>
+    </Relationship>
+
+    <Relationship name="fk_fq_constructor"
+                  parentEntity="dim_constructor" childEntity="fact_qualifying"
+                  cardinality="OneToMany" identifying="false">
+      <KeyColumns parent="constructor_id" child="constructor_id"/>
+    </Relationship>
+
+    <Relationship name="fk_frr_gp"
+                  parentEntity="fact_grand_prix" childEntity="fact_race_result"
+                  cardinality="OneToMany" identifying="true">
+      <KeyColumns parent="gp_id" child="gp_id"/>
+    </Relationship>
+
+    <Relationship name="fk_frr_driver"
+                  parentEntity="dim_driver" childEntity="fact_race_result"
+                  cardinality="OneToMany" identifying="false">
+      <KeyColumns parent="driver_id" child="driver_id"/>
+    </Relationship>
+
+    <Relationship name="fk_frr_constructor"
+                  parentEntity="dim_constructor" childEntity="fact_race_result"
+                  cardinality="OneToMany" identifying="false">
+      <KeyColumns parent="constructor_id" child="constructor_id"/>
+    </Relationship>
+
+    <Relationship name="fk_fcs_gp"
+                  parentEntity="fact_grand_prix" childEntity="fact_car_setup"
+                  cardinality="OneToMany" identifying="true">
+      <KeyColumns parent="gp_id" child="gp_id"/>
+    </Relationship>
+
+    <Relationship name="fk_fcs_constructor"
+                  parentEntity="dim_constructor" childEntity="fact_car_setup"
+                  cardinality="OneToMany" identifying="false">
+      <KeyColumns parent="constructor_id" child="constructor_id"/>
+    </Relationship>
+
+    <Relationship name="fk_fps_gp"
+                  parentEntity="fact_grand_prix" childEntity="fact_pit_stop"
+                  cardinality="OneToMany" identifying="true">
+      <KeyColumns parent="gp_id" child="gp_id"/>
+    </Relationship>
+
+    <Relationship name="fk_fps_driver"
+                  parentEntity="dim_driver" childEntity="fact_pit_stop"
+                  cardinality="OneToMany" identifying="false">
+      <KeyColumns parent="driver_id" child="driver_id"/>
+    </Relationship>
+
+    <Relationship name="fk_fcs2_season"
+                  parentEntity="dim_season" childEntity="fact_championship_standing"
+                  cardinality="OneToMany" identifying="true">
+      <KeyColumns parent="season_id" child="season_id"/>
+    </Relationship>
+
+    <Relationship name="fk_fcs2_driver"
+                  parentEntity="dim_driver" childEntity="fact_championship_standing"
+                  cardinality="OneToMany" identifying="false">
+      <KeyColumns parent="driver_id" child="driver_id"/>
+    </Relationship>
+
+    <Relationship name="fk_fcs2_constructor"
+                  parentEntity="dim_constructor" childEntity="fact_championship_standing"
+                  cardinality="OneToMany" identifying="false">
+      <KeyColumns parent="constructor_id" child="constructor_id"/>
+    </Relationship>
+
+  </Relationships>
+
+</ERwinModel>
