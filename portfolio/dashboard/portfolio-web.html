@@ -255,9 +255,100 @@ footer{background:#000;border-top:1px solid rgba(255,255,255,.06);padding:36px 8
   #contact{padding:100px 20px}
   .timeline::before{left:0}
 }
+
+/* ══════════════════════════════════
+   ANIMATED BACKGROUNDS — GLOBAL
+══════════════════════════════════ */
+
+/* Aurora blob layer — fixed behind everything */
+#auroraCanvas{
+  position:fixed;inset:0;width:100%;height:100%;
+  z-index:-2;pointer-events:none;opacity:.55;
+}
+
+/* Hex grid canvas per section */
+.section-canvas{
+  position:absolute;inset:0;width:100%;height:100%;
+  pointer-events:none;z-index:0;opacity:.35;
+}
+
+/* Dot matrix overlay */
+.dot-matrix{
+  position:absolute;inset:0;pointer-events:none;z-index:0;
+  background-image:radial-gradient(circle,rgba(14,165,233,.18) 1px,transparent 1px);
+  background-size:32px 32px;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 30%,transparent 100%);
+  -webkit-mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 30%,transparent 100%);
+  animation:dotPulse 6s ease-in-out infinite;
+}
+@keyframes dotPulse{
+  0%,100%{opacity:.4;background-size:32px 32px}
+  50%{opacity:.7;background-size:34px 34px}
+}
+
+/* Scanline overlay on entire page */
+body::after{
+  content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.03) 2px,rgba(0,0,0,.03) 4px);
+}
+
+/* Animated gradient border on section headings */
+.s-eye{
+  display:inline-block;
+  background:linear-gradient(90deg,#0ea5e9,#8b5cf6,#14b8a6,#0ea5e9);
+  background-size:200% 100%;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:gradShift 4s linear infinite;
+}
+@keyframes gradShift{from{background-position:0%}to{background-position:200%}}
+
+/* Experience: flowing data streams */
+#experience{background:#030303;overflow:hidden}
+.data-streams{
+  position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:
+    repeating-linear-gradient(90deg,transparent,transparent 79px,rgba(14,165,233,.04) 80px),
+    repeating-linear-gradient(180deg,transparent,transparent 39px,rgba(139,92,246,.03) 40px);
+  animation:streamScroll 12s linear infinite;
+}
+@keyframes streamScroll{from{background-position:0 0}to{background-position:80px 40px}}
+
+/* Metrics: animated ring background */
+#metrics{background:#000;overflow:hidden}
+.rings-bg{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:800px;height:800px;pointer-events:none;z-index:0;
+}
+.ring-item{
+  position:absolute;top:50%;left:50%;
+  border-radius:50%;border:1px solid;
+  transform:translate(-50%,-50%);
+  animation:ringExpand 6s ease-out infinite;
+}
+@keyframes ringExpand{
+  0%{opacity:.5;transform:translate(-50%,-50%) scale(.2)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1)}
+}
+
+/* CTA: animated gradient mesh */
+#contact{overflow:hidden}
+.mesh-bg{
+  position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 50%,rgba(14,165,233,.08),transparent),
+    radial-gradient(ellipse 50% 60% at 80% 50%,rgba(139,92,246,.08),transparent);
+  animation:meshShift 10s ease-in-out infinite alternate;
+}
+@keyframes meshShift{
+  from{background-position:0% 50%,100% 50%}
+  to{background-position:100% 50%,0% 50%}
+}
 </style>
 </head>
 <body>
+
+<!-- AURORA BACKGROUND — global animated blobs -->
+<canvas id="auroraCanvas"></canvas>
 
 <div id="progressBar"></div>
 
@@ -314,8 +405,10 @@ footer{background:#000;border-top:1px solid rgba(255,255,255,.06);padding:36px 8
 
 <!-- ══ TOOLS ══ -->
 <section id="tools">
-  <!-- 3D perspective grid background -->
-  <div class="bg-grid"></div>
+  <!-- Animated hex grid canvas -->
+  <canvas class="section-canvas" id="hexCanvas"></canvas>
+  <!-- Dot matrix overlay -->
+  <div class="dot-matrix"></div>
   <!-- Floating orbs -->
   <div class="orb" style="width:400px;height:400px;background:radial-gradient(circle,rgba(14,165,233,.12),transparent 70%);top:-100px;right:-100px;animation-duration:9s"></div>
   <div class="orb" style="width:300px;height:300px;background:radial-gradient(circle,rgba(139,92,246,.1),transparent 70%);bottom:-80px;left:10%;animation-duration:11s;animation-delay:-4s"></div>
@@ -525,9 +618,10 @@ footer{background:#000;border-top:1px solid rgba(255,255,255,.06);padding:36px 8
 
 <!-- ══ EXPERIENCE ══ -->
 <section id="experience">
-  <div class="bg-grid"></div>
+  <!-- Flowing data streams background -->
+  <div class="data-streams"></div>
+  <canvas class="section-canvas" id="streamsCanvas" style="opacity:.2"></canvas>
   <div class="orb" style="width:350px;height:350px;background:radial-gradient(circle,rgba(16,185,129,.08),transparent 70%);top:10%;right:5%;animation-duration:10s;animation-delay:-2s"></div>
-  <svg class="geo-shape" style="width:180px;height:180px;top:5%;left:60%;animation-duration:30s" viewBox="0 0 180 180"><circle cx="90" cy="90" r="80" fill="none" stroke="rgba(16,185,129,1)" stroke-width="1" stroke-dasharray="8 4"/></svg>
 
   <div class="s-eye">Trayectoria Profesional</div>
   <h2 class="s-title reveal">18 años construyendo<br>soluciones de datos.</h2>
@@ -586,11 +680,14 @@ footer{background:#000;border-top:1px solid rgba(255,255,255,.06);padding:36px 8
 
 <!-- ══ METRICS ══ -->
 <section id="metrics">
+  <!-- Animated concentric rings -->
+  <div class="rings-bg">
+    <div class="ring-item" style="width:200px;height:200px;border-color:rgba(14,165,233,.3);animation-delay:0s;animation-duration:5s"></div>
+    <div class="ring-item" style="width:350px;height:350px;border-color:rgba(139,92,246,.2);animation-delay:1.2s;animation-duration:5s"></div>
+    <div class="ring-item" style="width:500px;height:500px;border-color:rgba(20,184,166,.15);animation-delay:2.5s;animation-duration:5s"></div>
+    <div class="ring-item" style="width:700px;height:700px;border-color:rgba(14,165,233,.1);animation-delay:3.8s;animation-duration:5s"></div>
+  </div>
   <div class="orb" style="width:600px;height:600px;background:radial-gradient(circle,rgba(14,165,233,.06),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation-duration:14s"></div>
-  <svg class="geo-shape" style="width:300px;height:300px;top:5%;right:2%;opacity:.04;animation-duration:40s" viewBox="0 0 300 300">
-    <polygon points="150,20 280,85 280,215 150,280 20,215 20,85" fill="none" stroke="rgba(14,165,233,1)" stroke-width="2"/>
-    <polygon points="150,50 255,105 255,195 150,250 45,195 45,105" fill="none" stroke="rgba(139,92,246,1)" stroke-width="1"/>
-  </svg>
 
   <div class="s-eye">Impacto Medible</div>
   <h2 class="s-title reveal">KPIs que validan<br>la experiencia.</h2>
@@ -624,6 +721,8 @@ footer{background:#000;border-top:1px solid rgba(255,255,255,.06);padding:36px 8
 
 <!-- ══ CTA ══ -->
 <section id="contact">
+  <div class="mesh-bg"></div>
+  <canvas class="section-canvas" id="ctaCanvas" style="opacity:.25"></canvas>
   <div class="orb" style="width:500px;height:500px;background:radial-gradient(circle,rgba(14,165,233,.1),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation-duration:10s"></div>
   <div class="s-eye">Disponible para proyectos</div>
   <h2 class="cta-title reveal">Construyamos algo<br><span class="grad">extraordinario.</span></h2>
@@ -953,6 +1052,174 @@ document.querySelectorAll('.tool-card').forEach(card=>{
   if(!entry) return;
   loadToolIcon(iconEl, entry, entry.c);
 });
+
+// ══════════════════════════════════════════
+// AURORA BACKGROUND — animated color blobs
+// ══════════════════════════════════════════
+(function(){
+  const c = document.getElementById('auroraCanvas');
+  if(!c) return;
+  const ctx = c.getContext('2d');
+  let W, H;
+  function resize(){ W=c.width=window.innerWidth; H=c.height=window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+
+  const blobs = [
+    {x:.15, y:.25, r:.55, rgb:[14,165,233],  vx:.00045, vy:.0003},
+    {x:.80, y:.65, r:.50, rgb:[139,92,246],  vx:-.0004,  vy:.00035},
+    {x:.50, y:.85, r:.40, rgb:[20,184,166],  vx:.00035,  vy:-.0004},
+    {x:.90, y:.15, r:.35, rgb:[245,158,11],  vx:-.0003,  vy:.00045},
+    {x:.30, y:.70, r:.30, rgb:[99,102,241],  vx:.0005,   vy:-.0003},
+    {x:.65, y:.35, r:.32, rgb:[236,72,153],  vx:-.00038, vy:.00042},
+  ];
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    blobs.forEach(b=>{
+      b.x += b.vx; b.y += b.vy;
+      if(b.x<-.1||b.x>1.1) b.vx*=-1;
+      if(b.y<-.1||b.y>1.1) b.vy*=-1;
+      const gx=b.x*W, gy=b.y*H, gr=b.r*Math.max(W,H);
+      const g=ctx.createRadialGradient(gx,gy,0,gx,gy,gr);
+      const [r,gr2,gb]=b.rgb;
+      g.addColorStop(0,`rgba(${r},${gr2},${gb},.18)`);
+      g.addColorStop(.5,`rgba(${r},${gr2},${gb},.06)`);
+      g.addColorStop(1,`rgba(${r},${gr2},${gb},0)`);
+      ctx.fillStyle=g;
+      ctx.fillRect(0,0,W,H);
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ══════════════════════════════════════════
+// HEX GRID CANVAS — tools section
+// ══════════════════════════════════════════
+(function(){
+  const c=document.getElementById('hexCanvas');
+  if(!c) return;
+  const ctx=c.getContext('2d');
+  let t=0;
+  function resize(){
+    const r=c.parentElement.getBoundingClientRect();
+    c.width=r.width; c.height=r.height;
+  }
+  resize();
+  const HEX_R=28, HEX_H=HEX_R*Math.sqrt(3);
+
+  function hex(cx,cy,r,alpha){
+    ctx.beginPath();
+    for(let i=0;i<6;i++){
+      const a=Math.PI/180*(60*i-30);
+      i===0?ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a))
+           :ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));
+    }
+    ctx.closePath();
+    ctx.strokeStyle=`rgba(14,165,233,${alpha})`;
+    ctx.lineWidth=.6;
+    ctx.stroke();
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    const cols=Math.ceil(c.width/(HEX_R*1.75))+2;
+    const rows=Math.ceil(c.height/HEX_H)+2;
+    for(let row=0;row<rows;row++){
+      for(let col=0;col<cols;col++){
+        const x=col*HEX_R*1.75 - 20;
+        const y=row*HEX_H + (col%2)*HEX_H/2 - 20;
+        const wave=Math.sin(t*.8 + col*.4 + row*.5)*.5+.5;
+        hex(x,y,HEX_R-2,wave*.12+.02);
+        // Occasionally light up a hex
+        if(Math.sin(t*.3+col*1.2+row*2.1)>.92){
+          ctx.fillStyle=`rgba(14,165,233,${wave*.08})`;
+          ctx.fill();
+        }
+      }
+    }
+    t+=.015;
+    requestAnimationFrame(draw);
+  }
+  new ResizeObserver(resize).observe(c.parentElement);
+  draw();
+})();
+
+// ══════════════════════════════════════════
+// DATA STREAMS CANVAS — experience section
+// ══════════════════════════════════════════
+(function(){
+  const c=document.getElementById('streamsCanvas');
+  if(!c) return;
+  const ctx=c.getContext('2d');
+  function resize(){
+    const r=c.parentElement.getBoundingClientRect();
+    c.width=r.width||window.innerWidth; c.height=r.height||600;
+  }
+  resize();
+
+  const COLS=Math.ceil((c.width||window.innerWidth)/40);
+  const streams=Array.from({length:COLS},(_,i)=>({
+    x:i*40+20, y:Math.random()*-500, speed:Math.random()*1.5+.5,
+    len:Math.floor(Math.random()*12)+6, chars:[], color:Math.random()>.5?'#0ea5e9':'#8b5cf6'
+  }));
+  const CHARS='01アイウエオカキクケコ∑∆∏∫';
+  streams.forEach(s=>{ for(let i=0;i<s.len;i++) s.chars.push(CHARS[Math.floor(Math.random()*CHARS.length)]); });
+
+  function draw(){
+    ctx.fillStyle='rgba(3,3,3,.08)';
+    ctx.fillRect(0,0,c.width,c.height);
+    streams.forEach(s=>{
+      s.chars.forEach((ch,i)=>{
+        const alpha=i===s.chars.length-1?1:(i/s.chars.length)*.5;
+        ctx.fillStyle=i===s.chars.length-1?'#fff':s.color.replace(')',`,${alpha})`).replace('rgb','rgba');
+        ctx.font=`${12}px monospace`;
+        ctx.fillText(ch,s.x,s.y-i*14);
+        if(Math.random()>.97) s.chars[i]=CHARS[Math.floor(Math.random()*CHARS.length)];
+      });
+      s.y+=s.speed;
+      if(s.y>c.height+s.len*14){ s.y=Math.random()*-200; s.speed=Math.random()*1.5+.5; }
+    });
+    requestAnimationFrame(draw);
+  }
+  new ResizeObserver(resize).observe(c.parentElement);
+  draw();
+})();
+
+// ══════════════════════════════════════════
+// CTA CANVAS — starfield
+// ══════════════════════════════════════════
+(function(){
+  const c=document.getElementById('ctaCanvas');
+  if(!c) return;
+  const ctx=c.getContext('2d');
+  function resize(){
+    const r=c.parentElement.getBoundingClientRect();
+    c.width=r.width||window.innerWidth; c.height=r.height||600;
+  }
+  resize();
+  const stars=Array.from({length:120},()=>({
+    x:Math.random()*c.width, y:Math.random()*c.height,
+    r:Math.random()*1.5+.3, v:Math.random()*.4+.1,
+    a:Math.random(), da:Math.random()*.02-.01
+  }));
+  function draw(){
+    ctx.clearRect(0,0,c.width,c.height);
+    stars.forEach(s=>{
+      s.a+=s.da;
+      if(s.a<0||s.a>1) s.da*=-1;
+      ctx.beginPath();
+      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(14,165,233,${s.a*.8})`;
+      ctx.fill();
+      s.y-=s.v;
+      if(s.y<-5){ s.y=c.height+5; s.x=Math.random()*c.width; }
+    });
+    requestAnimationFrame(draw);
+  }
+  new ResizeObserver(resize).observe(c.parentElement);
+  draw();
+})();
 
 // Periodic coin-flip per icon (staggered)
 document.querySelectorAll('.tc-icon').forEach((icon,i)=>{
