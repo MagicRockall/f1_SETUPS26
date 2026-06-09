@@ -93,6 +93,8 @@ section{padding:110px 80px}
   box-shadow:0 6px 20px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.12);
   transition:transform .5s cubic-bezier(.25,.46,.45,.94);
 }
+.tc-icon img{width:26px;height:26px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4));display:block}
+.tc-icon .fb{font-weight:900;font-size:.82rem;letter-spacing:.02em}
 .tool-card:hover .tc-icon{transform:rotateY(18deg) rotateX(-8deg) scale(1.1)}
 .tc-icon::before{
   content:'';position:absolute;inset:0;border-radius:14px;
@@ -683,6 +685,58 @@ document.getElementById('projPrev').addEventListener('click',()=>{
 let ts=0;
 track.addEventListener('touchstart',e=>ts=e.touches[0].clientX);
 track.addEventListener('touchend',e=>{const d=ts-e.changedTouches[0].clientX;if(Math.abs(d)>50)d>0?document.getElementById('projNext').click():document.getElementById('projPrev').click()});
+
+// ── TOOL LOGOS ──
+// Map tc-name text → [simpleicons slug, hex color, fallback label]
+const LOGOS={
+  'Tableau Desktop':      ['tableau','38bdf8','TD'],
+  'Power BI':             ['powerbi','fbbf24','PB'],
+  'Qlik Sense / View':    ['qlik','a78bfa','QK'],
+  'Domo':                 ['domo','34d399','DM'],
+  'Looker':               ['looker','2dd4bf','LK'],
+  'QuickSight (AWS)':     ['amazonwebservices','fca5a5','QS'],
+  'Sisense':              ['sisense','818cf8','SS'],
+  'Databricks + PySpark': ['databricks','ff8c5a','DB'],
+  'Snowflake':            ['snowflake','4fc3f7','SF'],
+  'Microsoft Fabric':     ['microsoftazure','4fc3f7','MF'],
+  'Alteryx ETL':          ['alteryx','4dd0e1','AX'],
+  'Tableau Prep':         ['tableau','2dd4bf','TP'],
+  'SQL Server / SSIS':    ['microsoftsqlserver','34d399','SS'],
+  'Azure / AWS S3':       ['microsoftazure','ffbb44','AZ'],
+  'Python · DAX · SQL':   ['python','c4b5fd','PY'],
+  'Medallion · Delta Lake':['apachespark','67e8f9','MD'],
+  'Google Cloud — BigQuery':['googlebigquery','4285f4','BQ'],
+  'Vertex AI · Looker Studio':['googlecloud','ea4335','AI'],
+  'Oracle Cloud — OCI':   ['oracle','f86b2d','OC'],
+  'Teradata Vantage':     ['teradata','00afd7','TV'],
+  'dbt Cloud':            ['dbt','ff6943','dbt'],
+  'Fivetran / Airbyte':   ['fivetran','615ef0','FV'],
+  'Confluent Cloud — Kafka':['apachekafka','0082ca','KF'],
+  'Airflow / Astronomer': ['apacheairflow','017cee','AF'],
+  'IBM Cloud · Db2 DWH':  ['ibm','05c277','IBM'],
+};
+const BASE='https://cdn.simpleicons.org/';
+document.querySelectorAll('.tool-card').forEach(card=>{
+  const nameEl=card.querySelector('.tc-name');
+  const iconEl=card.querySelector('.tc-icon');
+  if(!nameEl||!iconEl)return;
+  const name=nameEl.textContent.trim();
+  const entry=LOGOS[name];
+  if(!entry)return;
+  const [slug,hex,fb]=entry;
+  const img=document.createElement('img');
+  img.src=`${BASE}${slug}/${hex}`;
+  img.alt=name;
+  img.width=26;img.height=26;
+  img.onerror=function(){
+    this.remove();
+    const sp=document.createElement('span');
+    sp.className='fb';sp.style.color='#'+hex;sp.textContent=fb;
+    iconEl.appendChild(sp);
+  };
+  iconEl.textContent='';
+  iconEl.appendChild(img);
+});
 </script>
 </body>
 </html>
