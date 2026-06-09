@@ -3,443 +3,750 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Retail Analytics Dashboard | BI Portfolio</title>
+<title>Portfolio Data Analytics — Jose Rodrigo Pérez Aller</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   :root {
-    --bg:       #0f1117;
-    --card:     #1a1d27;
-    --border:   #2a2d3e;
-    --accent:   #6c63ff;
-    --accent2:  #00d4aa;
-    --accent3:  #ff6584;
-    --accent4:  #ffd166;
-    --text:     #e2e8f0;
-    --muted:    #8892a4;
-    --green:    #10b981;
-    --red:      #ef4444;
-    --yellow:   #f59e0b;
+    --bg:      #0b0f1a;
+    --card:    #111827;
+    --card2:   #161d2e;
+    --border:  #1f2b40;
+    --accent:  #0ea5e9;
+    --accent2: #06b6d4;
+    --accent3: #3b82f6;
+    --teal:    #14b8a6;
+    --green:   #10b981;
+    --red:     #ef4444;
+    --yellow:  #f59e0b;
+    --purple:  #8b5cf6;
+    --text:    #e2e8f0;
+    --muted:   #64748b;
+    --light:   #94a3b8;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; }
 
-  /* HEADER */
+  /* ── HEADER ── */
   header {
-    background: linear-gradient(135deg, #1a1d27 0%, #12141f 100%);
+    background: linear-gradient(135deg, #0c1424 0%, #0f1e35 60%, #0b2240 100%);
     border-bottom: 1px solid var(--border);
-    padding: 20px 32px;
-    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 36px;
+    display: flex; justify-content: space-between; align-items: stretch;
+    min-height: 72px;
   }
-  .header-left h1 { font-size:1.4rem; font-weight:700; color:var(--text); }
-  .header-left p  { font-size:.82rem; color:var(--muted); margin-top:2px; }
-  .badge { background:var(--accent); color:#fff; font-size:.7rem; padding:3px 10px; border-radius:20px; font-weight:600; }
-
-  /* FILTERS */
-  .filters {
-    padding: 16px 32px;
-    background: var(--card);
-    border-bottom: 1px solid var(--border);
-    display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+  .header-brand { display:flex; align-items:center; gap:18px; padding:16px 0; }
+  .header-initials {
+    width:46px; height:46px; border-radius:10px; flex-shrink:0;
+    background: linear-gradient(135deg,#0ea5e9,#3b82f6);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:1.1rem; color:#fff; letter-spacing:.02em;
   }
-  .filters label { font-size:.78rem; color:var(--muted); margin-right:4px; }
-  .filters select {
-    background:#12141f; border:1px solid var(--border); color:var(--text);
-    padding:6px 12px; border-radius:8px; font-size:.82rem; cursor:pointer;
+  .header-name h1 { font-size:1.15rem; font-weight:700; color:#f1f5f9; letter-spacing:.01em; }
+  .header-name p  { font-size:.75rem; color:var(--light); margin-top:2px; }
+  .header-right { display:flex; align-items:center; gap:10px; }
+  .badge {
+    font-size:.68rem; padding:4px 11px; border-radius:20px; font-weight:700;
+    letter-spacing:.04em; text-transform:uppercase;
   }
-  .filters select:focus { outline:none; border-color:var(--accent); }
+  .badge-blue   { background:#0ea5e920; color:#38bdf8; border:1px solid #0ea5e940; }
+  .badge-green  { background:#10b98120; color:#34d399; border:1px solid #10b98140; }
+  .badge-purple { background:#8b5cf620; color:#a78bfa; border:1px solid #8b5cf640; }
+  .badge-teal   { background:#14b8a620; color:#2dd4bf; border:1px solid #14b8a640; }
+  .exp-badge {
+    background: linear-gradient(135deg,#0ea5e9,#3b82f6);
+    color:#fff; font-size:.7rem; font-weight:700; padding:5px 14px;
+    border-radius:20px; letter-spacing:.03em;
+  }
 
-  /* MAIN LAYOUT */
-  main { padding: 24px 32px; display:grid; gap:20px; }
+  /* ── NAV TABS ── */
+  nav {
+    background:var(--card); border-bottom:1px solid var(--border);
+    display:flex; gap:0; overflow-x:auto;
+    padding: 0 36px;
+  }
+  .tab {
+    padding:12px 20px; font-size:.8rem; font-weight:600; color:var(--muted);
+    border-bottom:2px solid transparent; cursor:pointer; white-space:nowrap;
+    transition: all .2s; text-transform:uppercase; letter-spacing:.05em;
+  }
+  .tab:hover { color:var(--light); }
+  .tab.active { color:var(--accent); border-bottom-color:var(--accent); }
 
-  /* KPI CARDS */
-  .kpi-row { display:grid; grid-template-columns: repeat(4, 1fr); gap:16px; }
+  /* ── PANELS ── */
+  .panel { display:none; padding:28px 36px; }
+  .panel.active { display:block; }
+
+  /* ── KPI ROW ── */
+  .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px; }
   .kpi-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius:12px;
-    padding: 20px 22px;
-    position:relative; overflow:hidden;
+    background:var(--card); border:1px solid var(--border); border-radius:12px;
+    padding:20px 22px; position:relative; overflow:hidden;
   }
-  .kpi-card::before {
-    content:''; position:absolute; top:0; left:0; right:0; height:3px;
-  }
-  .kpi-card.blue::before   { background: var(--accent); }
-  .kpi-card.teal::before   { background: var(--accent2); }
-  .kpi-card.pink::before   { background: var(--accent3); }
-  .kpi-card.yellow::before { background: var(--accent4); }
-  .kpi-label { font-size:.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
-  .kpi-value { font-size:1.9rem; font-weight:700; margin:6px 0 4px; }
-  .kpi-delta { font-size:.78rem; display:flex; align-items:center; gap:4px; }
-  .kpi-delta.up   { color:var(--green); }
-  .kpi-delta.down { color:var(--red); }
+  .kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+  .kpi-card.c1::before { background:linear-gradient(90deg,#0ea5e9,#38bdf8); }
+  .kpi-card.c2::before { background:linear-gradient(90deg,#14b8a6,#2dd4bf); }
+  .kpi-card.c3::before { background:linear-gradient(90deg,#8b5cf6,#a78bfa); }
+  .kpi-card.c4::before { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
+  .kpi-label { font-size:.7rem; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; }
+  .kpi-value { font-size:1.85rem; font-weight:800; margin:6px 0 4px; }
+  .kpi-delta { font-size:.75rem; display:flex; align-items:center; gap:4px; }
+  .up   { color:var(--green); }
+  .down { color:var(--red); }
 
-  /* CHARTS ROW */
-  .charts-row { display:grid; grid-template-columns: 2fr 1fr; gap:20px; }
-  .charts-row-3 { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:20px; }
-
+  /* ── CHARTS ── */
+  .charts-2 { display:grid; grid-template-columns:2fr 1fr; gap:18px; margin-bottom:18px; }
+  .charts-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; margin-bottom:18px; }
+  .charts-equal { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:18px; }
   .chart-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius:12px;
-    padding: 20px 22px;
+    background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px 22px;
   }
   .chart-title {
-    font-size:.85rem; font-weight:600; color:var(--text);
-    margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;
+    font-size:.82rem; font-weight:700; color:var(--text); margin-bottom:14px;
+    display:flex; justify-content:space-between; align-items:center;
   }
-  .chart-title span { font-size:.72rem; color:var(--muted); font-weight:400; }
-  .chart-wrap { position:relative; }
+  .chart-title span { font-size:.7rem; color:var(--muted); font-weight:400; }
 
-  /* TABLE */
-  .table-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius:12px;
-    padding: 20px 22px;
-    overflow-x:auto;
+  /* ── TABLE ── */
+  .tbl-card {
+    background:var(--card); border:1px solid var(--border); border-radius:12px;
+    padding:20px 22px; margin-bottom:18px; overflow-x:auto;
   }
-  table { width:100%; border-collapse:collapse; font-size:.82rem; }
+  table { width:100%; border-collapse:collapse; font-size:.8rem; }
   thead tr { border-bottom:1px solid var(--border); }
-  th { text-align:left; padding:8px 12px; color:var(--muted); font-weight:600;
-       font-size:.73rem; text-transform:uppercase; letter-spacing:.04em; }
-  tbody tr { border-bottom:1px solid #1e2132; transition: background .15s; }
-  tbody tr:hover { background:#1e2132; }
-  td { padding:10px 12px; }
-  .pill {
-    display:inline-block; padding:2px 8px; border-radius:20px; font-size:.7rem; font-weight:600;
-  }
-  .pill.verde   { background:#064e3b; color:#6ee7b7; }
-  .pill.amarillo{ background:#451a03; color:#fcd34d; }
-  .pill.rojo    { background:#450a0a; color:#fca5a5; }
-  .bar-mini { height:6px; border-radius:3px; background:var(--accent); display:inline-block; }
+  th { padding:8px 10px; color:var(--muted); font-weight:600; font-size:.7rem;
+       text-transform:uppercase; letter-spacing:.05em; text-align:left; }
+  tbody tr { border-bottom:1px solid #12192a; transition:background .15s; }
+  tbody tr:hover { background:#12192a; }
+  td { padding:9px 10px; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:20px; font-size:.68rem; font-weight:700; }
+  .pill-g { background:#052e16; color:#6ee7b7; }
+  .pill-y { background:#451a03; color:#fcd34d; }
+  .pill-r { background:#450a0a; color:#fca5a5; }
+  .bar-s { height:5px; border-radius:3px; display:inline-block; vertical-align:middle; margin-left:6px; }
 
-  /* FOOTER */
+  /* ── SKILLS SECTION ── */
+  .skills-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:18px; }
+  .skill-card {
+    background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px;
+  }
+  .skill-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .skill-icon {
+    width:38px; height:38px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.1rem; font-weight:800; flex-shrink:0;
+  }
+  .skill-name { font-size:.9rem; font-weight:700; }
+  .skill-sub  { font-size:.72rem; color:var(--muted); margin-top:1px; }
+  .skill-bar-wrap { margin-top:4px; }
+  .skill-bar-label { display:flex; justify-content:space-between; font-size:.72rem; color:var(--light); margin-bottom:4px; }
+  .skill-bar-bg { height:6px; background:#1e2a3a; border-radius:3px; }
+  .skill-bar-fill { height:6px; border-radius:3px; }
+
+  /* ── ABOUT ── */
+  .about-card {
+    background: linear-gradient(135deg,#0c1a2e,#0f2040);
+    border:1px solid #1e3a5f; border-radius:16px; padding:32px;
+    display:flex; gap:32px; align-items:flex-start; margin-bottom:20px;
+  }
+  .about-avatar {
+    width:80px; height:80px; border-radius:16px; flex-shrink:0;
+    background:linear-gradient(135deg,#0ea5e9,#3b82f6);
+    display:flex; align-items:center; justify-content:center;
+    font-size:2rem; font-weight:800; color:#fff;
+  }
+  .about-info h2 { font-size:1.4rem; font-weight:800; margin-bottom:4px; }
+  .about-info .title { color:var(--accent); font-size:.85rem; font-weight:600; margin-bottom:12px; }
+  .about-info p { color:var(--light); font-size:.85rem; line-height:1.7; max-width:680px; }
+  .tags { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .tag { background:#0ea5e915; color:#7dd3fc; border:1px solid #0ea5e930;
+         font-size:.7rem; padding:3px 10px; border-radius:20px; font-weight:600; }
+
   footer {
-    text-align:center; padding:20px; color:var(--muted); font-size:.75rem;
-    border-top:1px solid var(--border); margin-top:8px;
+    text-align:center; padding:20px; color:var(--muted); font-size:.73rem;
+    border-top:1px solid var(--border); margin-top:4px;
   }
   footer a { color:var(--accent); text-decoration:none; }
 
   @media(max-width:900px){
-    .kpi-row { grid-template-columns:1fr 1fr; }
-    .charts-row,.charts-row-3 { grid-template-columns:1fr; }
-    main,.filters,header { padding-left:16px; padding-right:16px; }
+    .kpi-row,.charts-3,.skills-grid { grid-template-columns:1fr 1fr; }
+    .charts-2,.charts-equal { grid-template-columns:1fr; }
+    header,nav,.panel { padding-left:16px; padding-right:16px; }
   }
 </style>
 </head>
 <body>
 
+<!-- ══ HEADER ══ -->
 <header>
-  <div class="header-left">
-    <h1>Retail Analytics Dashboard</h1>
-    <p>Portafolio BI — SQL · Power BI · Tableau · ERwin</p>
+  <div class="header-brand">
+    <div class="header-initials">RA</div>
+    <div class="header-name">
+      <h1>Jose Rodrigo Pérez Aller</h1>
+      <p>Senior Business Intelligence Analyst &nbsp;·&nbsp; +16 años de experiencia</p>
+    </div>
   </div>
-  <span class="badge">LIVE DEMO</span>
+  <div class="header-right">
+    <span class="badge badge-blue">Tableau</span>
+    <span class="badge badge-teal">Power BI</span>
+    <span class="badge badge-purple">Qlik Sense</span>
+    <span class="badge badge-green">SQL Server</span>
+    <span class="exp-badge">16+ YRS</span>
+  </div>
 </header>
 
-<div class="filters">
-  <div>
-    <label>Año</label>
-    <select id="filtroAnio" onchange="updateCharts()">
-      <option value="all">Todos</option>
-      <option value="2024" selected>2024</option>
-    </select>
+<!-- ══ TABS ══ -->
+<nav>
+  <div class="tab active" onclick="showPanel('ventas')">Ventas & Retail</div>
+  <div class="tab" onclick="showPanel('utilidad')">Utilidad por Producto</div>
+  <div class="tab" onclick="showPanel('pasajeros')">Aviación México</div>
+  <div class="tab" onclick="showPanel('boston')">Boston Police Earnings</div>
+  <div class="tab" onclick="showPanel('skills')">Stack Técnico</div>
+  <div class="tab" onclick="showPanel('about')">Perfil</div>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     PANEL 1 — VENTAS & RETAIL
+══════════════════════════════════════════ -->
+<div class="panel active" id="panel-ventas">
+
+  <div class="kpi-row">
+    <div class="kpi-card c1">
+      <div class="kpi-label">Ventas Totales</div>
+      <div class="kpi-value">$5.48M</div>
+      <div class="kpi-delta up">▲ +22.65% vs año anterior</div>
+    </div>
+    <div class="kpi-card c2">
+      <div class="kpi-label">Contribución</div>
+      <div class="kpi-value">$2.78M</div>
+      <div class="kpi-delta up">▲ +21.86% (+$497K)</div>
+    </div>
+    <div class="kpi-card c3">
+      <div class="kpi-label">Top Vendedor</div>
+      <div class="kpi-value">$685K</div>
+      <div class="kpi-delta down">▼ Kaslyn -17% vs PY</div>
+    </div>
+    <div class="kpi-card c4">
+      <div class="kpi-label">Mercados</div>
+      <div class="kpi-value">3</div>
+      <div class="kpi-delta up">USA · España · México</div>
+    </div>
   </div>
-  <div>
-    <label>Region</label>
-    <select id="filtroRegion" onchange="updateCharts()">
-      <option value="all">Todas</option>
-      <option>Norte</option>
-      <option>Centro</option>
-      <option>Sur</option>
-      <option>Occidente</option>
-    </select>
+
+  <div class="charts-2">
+    <div class="chart-card">
+      <div class="chart-title">Ventas Mensuales 2009 — Total Ingresos vs LY <span>USD</span></div>
+      <canvas id="cVentasMes" height="110"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Ventas por Región 2015 <span>USD</span></div>
+      <canvas id="cRegion" height="200"></canvas>
+    </div>
   </div>
-  <div>
-    <label>Categoría</label>
-    <select id="filtroCategoria" onchange="updateCharts()">
-      <option value="all">Todas</option>
-      <option>Electronica</option>
-      <option>Ropa</option>
-      <option>Hogar</option>
-      <option>Deportes</option>
-    </select>
+
+  <div class="charts-equal">
+    <div class="chart-card">
+      <div class="chart-title">Top 10 Vendedores vs Año Previo <span>Apr 2018 vs Apr 2017</span></div>
+      <canvas id="cVendedores" height="200"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Ventas por Marca vs Año Previo</div>
+      <canvas id="cMarca" height="200"></canvas>
+    </div>
   </div>
-  <div>
-    <label>Canal</label>
-    <select id="filtroCanal" onchange="updateCharts()">
-      <option value="all">Todos</option>
-      <option>Online</option>
-      <option>Tienda</option>
-    </select>
+
+  <div class="tbl-card">
+    <div class="chart-title" style="margin-bottom:12px">Ingresos Mensuales 2009 — Variación YoY</div>
+    <table>
+      <thead><tr><th>Mes</th><th>Ingresos 2009</th><th>Ingresos LY</th><th>Variación</th><th>Tendencia</th></tr></thead>
+      <tbody>
+        <tr><td>Junio</td><td>$219,371,477</td><td>$207,079,792</td><td class="up">+$12.3M</td><td>▲</td></tr>
+        <tr><td>Julio</td><td>$213,418,051</td><td>$229,906,366</td><td class="down">-$16.5M</td><td>▼</td></tr>
+        <tr><td>Agosto</td><td>$205,615,939</td><td>$213,168,678</td><td class="down">-$7.6M</td><td>▼</td></tr>
+        <tr><td>Septiembre</td><td>$199,171,552</td><td>$210,186,489</td><td class="down">-$11.0M</td><td>▼</td></tr>
+        <tr><td>Octubre</td><td>$212,431,610</td><td>$202,461,253</td><td class="up">+$10.0M</td><td>▲</td></tr>
+        <tr><td>Noviembre</td><td>$183,719,485</td><td>$205,399,887</td><td class="down">-$21.7M</td><td>▼</td></tr>
+        <tr><td>Diciembre</td><td>$189,245,597</td><td>$216,296,247</td><td class="down">-$27.1M</td><td>▼</td></tr>
+        <tr><td><b>TOTAL</b></td><td><b>$2,342,356,903</b></td><td><b>$2,418,115,901</b></td><td class="down"><b>-$75.8M (-3.04%)</b></td><td>▼</td></tr>
+      </tbody>
+    </table>
   </div>
 </div>
 
-<main>
+<!-- ══════════════════════════════════════════
+     PANEL 2 — UTILIDAD POR PRODUCTO
+══════════════════════════════════════════ -->
+<div class="panel" id="panel-utilidad">
 
-  <!-- KPIs -->
   <div class="kpi-row">
-    <div class="kpi-card blue">
-      <div class="kpi-label">Ventas Netas</div>
-      <div class="kpi-value" id="kpi-ventas">$4.2M</div>
-      <div class="kpi-delta up" id="kpi-ventas-delta">▲ 12.4% vs año anterior</div>
+    <div class="kpi-card c1">
+      <div class="kpi-label">Utilidad Total</div>
+      <div class="kpi-value">$497,778</div>
+      <div class="kpi-delta up">Power BI · SQL Server</div>
     </div>
-    <div class="kpi-card teal">
-      <div class="kpi-label">Margen Bruto</div>
-      <div class="kpi-value" id="kpi-margen">38.6%</div>
-      <div class="kpi-delta up" id="kpi-margen-delta">▲ 2.1 pp vs año anterior</div>
+    <div class="kpi-card c2">
+      <div class="kpi-label">Margen Global</div>
+      <div class="kpi-value">43%</div>
+      <div class="kpi-delta up">▲ Rentabilidad alta</div>
     </div>
-    <div class="kpi-card pink">
-      <div class="kpi-label">Unidades Vendidas</div>
-      <div class="kpi-value" id="kpi-unidades">12,480</div>
-      <div class="kpi-delta up">▲ 8.7% vs año anterior</div>
+    <div class="kpi-card c3">
+      <div class="kpi-label">Producto Top</div>
+      <div class="kpi-value">LAX</div>
+      <div class="kpi-delta up">$89,663 · Margen 49%</div>
     </div>
-    <div class="kpi-card yellow">
-      <div class="kpi-label">Ticket Promedio</div>
-      <div class="kpi-value" id="kpi-ticket">$3,840</div>
-      <div class="kpi-delta down">▼ 1.2% vs año anterior</div>
-    </div>
-  </div>
-
-  <!-- Ventas mensuales + Canal Mix -->
-  <div class="charts-row">
-    <div class="chart-card">
-      <div class="chart-title">Ventas Mensuales <span>Ingresos netos MXN</span></div>
-      <div class="chart-wrap"><canvas id="chartMensual" height="110"></canvas></div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">Mix de Canal <span>% participacion</span></div>
-      <div class="chart-wrap"><canvas id="chartCanal" height="200"></canvas></div>
+    <div class="kpi-card c4">
+      <div class="kpi-label">Regiones</div>
+      <div class="kpi-value">6</div>
+      <div class="kpi-delta up">ARG · CHI · MX · CAN · COL · PER</div>
     </div>
   </div>
 
-  <!-- Categorias + Regiones + Margen semaforo -->
-  <div class="charts-row-3">
+  <div class="charts-equal">
     <div class="chart-card">
-      <div class="chart-title">Ventas por Categoría</div>
-      <div class="chart-wrap"><canvas id="chartCategoria" height="200"></canvas></div>
+      <div class="chart-title">Utilidad por Tipo de Producto <span>USD</span></div>
+      <canvas id="cUtilidad" height="220"></canvas>
     </div>
     <div class="chart-card">
-      <div class="chart-title">Ventas por Región</div>
-      <div class="chart-wrap"><canvas id="chartRegion" height="200"></canvas></div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">Margen por Categoría <span>Semáforo</span></div>
-      <div class="chart-wrap"><canvas id="chartMargen" height="200"></canvas></div>
+      <div class="chart-title">Margen % por Producto <span>Semáforo de rentabilidad</span></div>
+      <canvas id="cMargen" height="220"></canvas>
     </div>
   </div>
 
-  <!-- Top Productos tabla -->
-  <div class="table-card">
-    <div class="chart-title" style="margin-bottom:14px">Top 10 Productos — Pareto de Ventas</div>
+  <div class="tbl-card">
+    <div class="chart-title" style="margin-bottom:12px">Detalle por Tipo de Producto</div>
     <table>
-      <thead>
-        <tr>
-          <th>#</th><th>Producto</th><th>Categoría</th><th>Ventas Netas</th>
-          <th>Unidades</th><th>Margen %</th><th>% del Total</th>
-          <th>% Acumulado</th><th>Rentabilidad</th>
-        </tr>
-      </thead>
-      <tbody id="tabla-productos"></tbody>
+      <thead><tr><th>#</th><th>Producto</th><th>Utilidad</th><th>Margen %</th><th>% del Total</th><th>Rentabilidad</th></tr></thead>
+      <tbody id="tbUtilidad"></tbody>
     </table>
   </div>
+</div>
 
-  <!-- Ranking Vendedores -->
-  <div class="table-card">
-    <div class="chart-title" style="margin-bottom:14px">Ranking Vendedores</div>
-    <table>
-      <thead>
-        <tr><th>#</th><th>Vendedor</th><th>Region</th><th>Ventas Netas</th>
-            <th>Margen</th><th>Transacciones</th><th>Ticket Prom.</th><th>Participacion</th></tr>
-      </thead>
-      <tbody id="tabla-vendedores"></tbody>
-    </table>
+<!-- ══════════════════════════════════════════
+     PANEL 3 — AVIACIÓN MÉXICO
+══════════════════════════════════════════ -->
+<div class="panel" id="panel-pasajeros">
+
+  <div class="kpi-row">
+    <div class="kpi-card c1">
+      <div class="kpi-label">Total Pasajeros 2020</div>
+      <div class="kpi-value">27.5M</div>
+      <div class="kpi-delta down">▼ COVID-19 impacto severo</div>
+    </div>
+    <div class="kpi-card c2">
+      <div class="kpi-label">Caída vs 2019</div>
+      <div class="kpi-value">-47%</div>
+      <div class="kpi-delta down">▼ Promedio industria</div>
+    </div>
+    <div class="kpi-card c3">
+      <div class="kpi-label">Aerolínea #1</div>
+      <div class="kpi-value">Volaris</div>
+      <div class="kpi-delta">38.14% participación 2020</div>
+    </div>
+    <div class="kpi-card c4">
+      <div class="kpi-label">Aerolíneas Analizadas</div>
+      <div class="kpi-value">8</div>
+      <div class="kpi-delta">Vuelos nacionales México</div>
+    </div>
   </div>
 
-</main>
+  <div class="charts-2">
+    <div class="chart-card">
+      <div class="chart-title">Pasajeros por Aerolínea 2019 vs 2020 <span>Millones</span></div>
+      <canvas id="cPasajeros" height="120"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Participación de Mercado 2020</div>
+      <canvas id="cParticipacion" height="220"></canvas>
+    </div>
+  </div>
+
+  <div class="tbl-card">
+    <div class="chart-title" style="margin-bottom:12px">Resumen por Aerolínea — Vuelos Nacionales</div>
+    <table>
+      <thead><tr><th>Aerolínea</th><th>2019</th><th>2020</th><th>Variación %</th><th>Participación 2020</th></tr></thead>
+      <tbody id="tbPasajeros"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PANEL 4 — BOSTON POLICE
+══════════════════════════════════════════ -->
+<div class="panel" id="panel-boston">
+
+  <div class="kpi-row">
+    <div class="kpi-card c1">
+      <div class="kpi-label">Total Employee Earnings</div>
+      <div class="kpi-value">$416M</div>
+      <div class="kpi-delta down">▼ -0.2% vs año anterior</div>
+    </div>
+    <div class="kpi-card c2">
+      <div class="kpi-label">CAGR BPD 2010–2020</div>
+      <div class="kpi-value">3.75%</div>
+      <div class="kpi-delta up">▲ Crecimiento sostenido</div>
+    </div>
+    <div class="kpi-card c3">
+      <div class="kpi-label">Mediana BPD 2020</div>
+      <div class="kpi-value">$153K</div>
+      <div class="kpi-delta up">▲ vs $132K Fire Dept</div>
+    </div>
+    <div class="kpi-card c4">
+      <div class="kpi-label">Mediana Fire Dept 2020</div>
+      <div class="kpi-value">$132K</div>
+      <div class="kpi-delta">vs $107K en 2010</div>
+    </div>
+  </div>
+
+  <div class="charts-equal">
+    <div class="chart-card">
+      <div class="chart-title">BPD vs Fire Dept — Mediana Earnings 2010–2020 <span>USD</span></div>
+      <canvas id="cBoston" height="200"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Forecast Trimestral — Ventas <span>Actual vs Estimación</span></div>
+      <canvas id="cForecast" height="200"></canvas>
+    </div>
+  </div>
+
+  <div class="tbl-card">
+    <div class="chart-title" style="margin-bottom:12px">Forecast Trimestral</div>
+    <table>
+      <thead><tr><th>Trimestre</th><th>Tipo</th><th>Ventas</th><th>Estado</th></tr></thead>
+      <tbody>
+        <tr><td>T1 2015</td><td>Actual</td><td>$972,585</td><td><span class="pill pill-g">Confirmado</span></td></tr>
+        <tr><td>T2 2015</td><td>Actual</td><td>$1,051,773</td><td><span class="pill pill-g">Confirmado</span></td></tr>
+        <tr><td>T3 2015</td><td>Estimación</td><td>$946,798</td><td><span class="pill pill-y">Proyectado</span></td></tr>
+        <tr><td>T4 2015</td><td>Estimación</td><td>$946,798</td><td><span class="pill pill-y">Proyectado</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PANEL 5 — STACK TÉCNICO
+══════════════════════════════════════════ -->
+<div class="panel" id="panel-skills">
+  <div class="skills-grid" id="skillsGrid"></div>
+
+  <div class="charts-equal">
+    <div class="chart-card">
+      <div class="chart-title">Nivel por Herramienta</div>
+      <canvas id="cSkillsBar" height="200"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Distribución por Área de Expertise</div>
+      <canvas id="cSkillsDona" height="200"></canvas>
+    </div>
+  </div>
+
+  <div class="tbl-card">
+    <div class="chart-title" style="margin-bottom:12px">Herramientas y Casos de Uso</div>
+    <table>
+      <thead><tr><th>Herramienta</th><th>Categoría</th><th>Nivel</th><th>Casos de uso en portfolio</th></tr></thead>
+      <tbody>
+        <tr><td><b>Tableau Desktop</b></td><td>Visualización</td><td><span class="pill pill-g">Avanzado</span></td><td>Mapas, forecasting, dashboards ejecutivos, cohortes</td></tr>
+        <tr><td><b>Tableau Prep</b></td><td>ETL</td><td><span class="pill pill-g">Avanzado</span></td><td>Limpieza, normalización, pipelines de datos</td></tr>
+        <tr><td><b>Power BI</b></td><td>Visualización</td><td><span class="pill pill-g">Avanzado</span></td><td>YoY, utilidad por producto, indicadores globales</td></tr>
+        <tr><td><b>Qlik Sense</b></td><td>Visualización</td><td><span class="pill pill-g">Avanzado</span></td><td>Análisis de clientes, Pareto, Pareto de clientes</td></tr>
+        <tr><td><b>SQL Server</b></td><td>Base de datos</td><td><span class="pill pill-g">Avanzado</span></td><td>DDL, SPs, optimización, fuente directa para BI</td></tr>
+        <tr><td><b>DAX</b></td><td>Lenguaje BI</td><td><span class="pill pill-g">Avanzado</span></td><td>Medidas, time intelligence, rankings, semáforos</td></tr>
+        <tr><td><b>ERwin DM</b></td><td>Modelado</td><td><span class="pill pill-y">Intermedio</span></td><td>Modelos físicos, star schema, documentación</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PANEL 6 — PERFIL
+══════════════════════════════════════════ -->
+<div class="panel" id="panel-about">
+  <div class="about-card">
+    <div class="about-avatar">RA</div>
+    <div class="about-info">
+      <h2>Jose Rodrigo Pérez Aller</h2>
+      <div class="title">Senior Business Intelligence Analyst · +16 años de experiencia</div>
+      <p>Business Intelligence professional with more than 16 years of experience, focused on identifying the risks in the sales area, creating smart reports to define strategies that allow us to optimize the results of it.</p>
+      <p style="margin-top:10px">Especializado en diseño e implementación de dashboards ejecutivos, modelos de datos dimensionales y análisis predictivo para sectores de retail, aviación, sector público y healthcare.</p>
+      <div class="tags">
+        <span class="tag">Tableau Desktop</span>
+        <span class="tag">Tableau Prep</span>
+        <span class="tag">Power BI</span>
+        <span class="tag">Qlik Sense</span>
+        <span class="tag">SQL Server</span>
+        <span class="tag">DAX</span>
+        <span class="tag">ERwin</span>
+        <span class="tag">Star Schema</span>
+        <span class="tag">ETL</span>
+        <span class="tag">Forecasting</span>
+        <span class="tag">Cohort Analysis</span>
+        <span class="tag">YoY / YTD</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="charts-3">
+    <div class="chart-card">
+      <div class="chart-title">Industrias <span>Proyectos por sector</span></div>
+      <canvas id="cIndustrias" height="200"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Herramientas <span>% uso en proyectos</span></div>
+      <canvas id="cTools" height="200"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Tipos de Análisis</div>
+      <canvas id="cAnalysis" height="200"></canvas>
+    </div>
+  </div>
+</div>
 
 <footer>
-  Portafolio BI &nbsp;|&nbsp; SQL · Power BI · Tableau · ERwin &nbsp;|&nbsp;
-  Datos: Retail México 2024 &nbsp;|&nbsp;
+  Jose Rodrigo Pérez Aller &nbsp;·&nbsp; Portfolio Data Analytics &nbsp;·&nbsp;
+  Tableau · Power BI · Qlik Sense · SQL Server · ERwin &nbsp;·&nbsp;
   <a href="https://github.com/MagicRockall/f1_SETUPS26" target="_blank">GitHub</a>
 </footer>
 
 <script>
-// ============================================================
-// DATOS DE MUESTRA (generados desde ventas_retail.csv)
-// ============================================================
-const DATA = {
-  meses: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
-  ventasMes: [842000,768000,895000,720000,980000,760000,830000,910000,850000,920000,1100000,850000],
-  ventasMesAnterior: [750000,690000,800000,640000,880000,680000,740000,820000,760000,830000,990000,760000],
-  categorias: {
-    labels: ['Electronica','Ropa','Hogar','Deportes'],
-    ventas:  [1850000, 1200000, 980000, 620000],
-    margen:  [42.1, 61.4, 35.8, 48.2]
-  },
-  regiones: {
-    labels: ['Centro','Norte','Occidente','Sur'],
-    ventas:  [1680000, 1420000, 1100000, 920000]
-  },
-  canal: { online: 54, tienda: 46 },
-  productos: [
-    {r:1, prod:'MacBook Pro 14', cat:'Electronica', ventas:225000, uni:5,  margen:26.7, pct:5.4, acum:5.4},
-    {r:2, prod:'iPhone 15 Pro Max',cat:'Electronica',ventas:208791,uni:9, margen:27.6, pct:5.0, acum:10.4},
-    {r:3, prod:'iPhone 15',       cat:'Electronica',ventas:193596,uni:27, margen:25.4, pct:4.6, acum:15.0},
-    {r:4, prod:'Recamara Completa',cat:'Hogar',      ventas:152400,uni:6, margen:31.3, pct:3.6, acum:18.6},
-    {r:5, prod:'Sofa 3 Piezas',   cat:'Hogar',       ventas:121120,uni:4,  margen:31.8, pct:2.9, acum:21.5},
-    {r:6, prod:'Caminadora',      cat:'Deportes',    ventas:118800,uni:3,  margen:31.8, pct:2.8, acum:24.3},
-    {r:7, prod:'Samsung S24+',    cat:'Electronica', ventas:109989,uni:11, margen:27.5, pct:2.6, acum:26.9},
-    {r:8, prod:'MacBook Air M2',  cat:'Electronica', ventas:114000,uni:4,  margen:26.3, pct:2.7, acum:29.6},
-    {r:9, prod:'Freidora Aire',   cat:'Hogar',       ventas:83600, uni:40, margen:60.2, pct:2.0, acum:31.6},
-    {r:10,prod:'KitchenAid',      cat:'Hogar',       ventas:108000,uni:9,  margen:37.5, pct:2.6, acum:34.2},
-  ],
-  vendedores: [
-    {r:1, nom:'Carlos Mendez',   reg:'Norte',     ventas:980000, margen:38.2, tx:18, ticket:54444},
-    {r:2, nom:'Ana Torres',      reg:'Centro',    ventas:860000, margen:42.1, tx:16, ticket:53750},
-    {r:3, nom:'Marco Silva',     reg:'Centro',    ventas:820000, margen:37.8, tx:14, ticket:58571},
-    {r:4, nom:'Sofia Reyes',     reg:'Occidente', ventas:790000, margen:39.5, tx:15, ticket:52667},
-    {r:5, nom:'Luis Ruiz',       reg:'Sur',       ventas:680000, margen:41.3, tx:14, ticket:48571},
-    {r:6, nom:'Patricia Lopez',  reg:'Sur',       ventas:540000, margen:36.2, tx:10, ticket:54000},
-    {r:7, nom:'Roberto Diaz',    reg:'Norte',     ventas:480000, margen:43.8, tx:9,  ticket:53333},
-    {r:8, nom:'Carmen Vega',     reg:'Occidente', ventas:460000, margen:44.2, tx:8,  ticket:57500},
-    {r:9, nom:'Elena Castro',    reg:'Centro',    ventas:380000, margen:38.9, tx:7,  ticket:54286},
+// ── NAVEGACION ──
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ── COLORES ──
+const C = { blue:'#0ea5e9', teal:'#14b8a6', purple:'#8b5cf6', yellow:'#f59e0b',
+            green:'#10b981', red:'#ef4444', cyan:'#06b6d4', ind:'#6366f1' };
+const BG = k => C[k]+'33';
+const grid = { color:'#1f2b40' };
+const tickOpts = { color:'#64748b' };
+const legendOpts = { labels:{ color:'#94a3b8', font:{size:11}, boxWidth:12 } };
+
+// ── CHART HELPERS ──
+function barChart(id, labels, datasets, opts={}) {
+  return new Chart(document.getElementById(id), {
+    type:'bar',
+    data:{ labels, datasets },
+    options:{ responsive:true, plugins:{ legend: datasets.length>1 ? {labels:legendOpts.labels} : {display:false}, ...opts.plugins },
+      scales:{ x:{ticks:tickOpts,grid}, y:{ticks:{...tickOpts,...(opts.yFormat?{callback:opts.yFormat}:{})},grid} } }
+  });
+}
+function hBarChart(id, labels, data, colors) {
+  return new Chart(document.getElementById(id), {
+    type:'bar',
+    data:{ labels, datasets:[{ data, backgroundColor:colors, borderRadius:5 }] },
+    options:{ indexAxis:'y', responsive:true, plugins:{legend:{display:false}},
+      scales:{ x:{ticks:tickOpts,grid}, y:{ticks:tickOpts,grid:{display:false}} } }
+  });
+}
+function donutChart(id, labels, data, colors) {
+  return new Chart(document.getElementById(id), {
+    type:'doughnut',
+    data:{ labels, datasets:[{ data, backgroundColor:colors, borderWidth:0, hoverOffset:8 }] },
+    options:{ responsive:true, cutout:'68%', plugins:{ legend:{position:'bottom',labels:{...legendOpts.labels,padding:14}} } }
+  });
+}
+function lineChart(id, labels, datasets) {
+  return new Chart(document.getElementById(id), {
+    type:'line',
+    data:{ labels, datasets },
+    options:{ responsive:true, plugins:{ legend:{labels:legendOpts.labels} },
+      scales:{ x:{ticks:tickOpts,grid}, y:{ticks:{...tickOpts,callback:v=>'$'+v+'K'},grid} } }
+  });
+}
+
+// ════════════════════════════════
+// PANEL 1 — VENTAS
+// ════════════════════════════════
+lineChart('cVentasMes',
+  ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
+  [
+    { label:'2009', data:[null,null,null,null,null,219,213,206,199,212,184,189],
+      borderColor:C.blue, backgroundColor:C.blue+'22', fill:true, tension:.4, pointRadius:4, borderWidth:2 },
+    { label:'2008 (LY)', data:[null,null,null,null,null,207,230,213,210,202,205,216],
+      borderColor:C.teal, borderDash:[5,4], tension:.4, pointRadius:3, borderWidth:1.5, fill:false }
   ]
-};
+);
 
-const COLORS = ['#6c63ff','#00d4aa','#ff6584','#ffd166','#a78bfa','#34d399','#fb7185','#60a5fa'];
-const fmt = n => '$' + (n >= 1e6 ? (n/1e6).toFixed(1)+'M' : (n/1e3).toFixed(0)+'K');
-const fmtFull = n => '$' + n.toLocaleString('es-MX');
+new Chart(document.getElementById('cRegion'),{
+  type:'doughnut',
+  data:{
+    labels:['East','West','Central','South'],
+    datasets:[{ data:[592171,526777,448285,357105], backgroundColor:[C.blue,C.teal,C.purple,C.yellow], borderWidth:0, hoverOffset:8 }]
+  },
+  options:{ responsive:true, cutout:'65%', plugins:{ legend:{position:'bottom',labels:{...legendOpts.labels,padding:14}} } }
+});
 
-// ---- CHARTS ----
-let charts = {};
+hBarChart('cVendedores',
+  ['Kaslyn','Mohamed','Colt','Jacinto','Domingo','Glen','Maribel','Brent','Ivy','Paula'],
+  [685070,674160,421170,409170,363250,335420,330890,338650,297300,264810],
+  [C.red,C.green,C.blue,C.blue,C.red,C.green,C.green,C.green,C.green,C.green]
+);
 
-function buildCharts() {
-  // 1. Ventas mensuales — bar + line
-  charts.mensual = new Chart(document.getElementById('chartMensual'), {
-    type: 'bar',
-    data: {
-      labels: DATA.meses,
-      datasets: [
-        { label:'2024', data: DATA.ventasMes, backgroundColor: '#6c63ff99', borderColor:'#6c63ff', borderWidth:1.5, borderRadius:6 },
-        { label:'2023', data: DATA.ventasMesAnterior, type:'line', borderColor:'#00d4aa', borderWidth:2, pointRadius:3, fill:false, tension:.4 }
-      ]
-    },
-    options: { responsive:true, plugins:{ legend:{labels:{color:'#8892a4',font:{size:11}}} },
-      scales:{ x:{ticks:{color:'#8892a4'}, grid:{color:'#1e2132'}},
-               y:{ticks:{color:'#8892a4', callback:v=>fmt(v)}, grid:{color:'#1e2132'}} } }
-  });
+hBarChart('cMarca',
+  ['Conexión TI','Veluz','Zoofarm','Empaca Todo','Northsend'],
+  [2720000,1320000,760000,350000,320000],
+  [C.blue,C.teal,C.purple,C.yellow,C.ind]
+);
 
-  // 2. Canal donut
-  charts.canal = new Chart(document.getElementById('chartCanal'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Online','Tienda'],
-      datasets: [{ data:[DATA.canal.online, DATA.canal.tienda],
-        backgroundColor:['#6c63ff','#00d4aa'], borderWidth:0, hoverOffset:8 }]
-    },
-    options: { responsive:true, cutout:'72%',
-      plugins:{ legend:{position:'bottom', labels:{color:'#8892a4', padding:16, font:{size:12}}},
-        tooltip:{callbacks:{label:c=>' '+c.label+': '+c.parsed+'%'}} } }
-  });
+// ════════════════════════════════
+// PANEL 2 — UTILIDAD
+// ════════════════════════════════
+const prodData = [
+  {r:1,prod:'LAX',    util:89663, margen:49},
+  {r:2,prod:'MOC',    util:77465, margen:57},
+  {r:3,prod:'DONANY', util:73472, margen:59},
+  {r:4,prod:'CHOTUS', util:71329, margen:44},
+  {r:5,prod:'SALF',   util:60001, margen:61},
+  {r:6,prod:'GAMBO',  util:44476, margen:39},
+  {r:7,prod:'DAWNE',  util:42945, margen:44},
+  {r:8,prod:'QUOKAR', util:38428, margen:17},
+];
 
-  // 3. Categorias horizontal bar
-  charts.categoria = new Chart(document.getElementById('chartCategoria'), {
-    type: 'bar',
-    data: {
-      labels: DATA.categorias.labels,
-      datasets: [{ label:'Ventas', data: DATA.categorias.ventas,
-        backgroundColor: COLORS, borderRadius:6 }]
-    },
-    options: { indexAxis:'y', responsive:true,
-      plugins:{ legend:{display:false} },
-      scales:{ x:{ticks:{color:'#8892a4', callback:v=>fmt(v)}, grid:{color:'#1e2132'}},
-               y:{ticks:{color:'#8892a4'}, grid:{display:false}} } }
-  });
+barChart('cUtilidad',
+  prodData.map(p=>p.prod),
+  [{ label:'Utilidad USD', data:prodData.map(p=>p.util),
+     backgroundColor:[C.blue,C.teal,C.purple,C.yellow,C.green,C.cyan,C.ind,C.red].map(c=>c+'cc'),
+     borderRadius:6 }]
+);
 
-  // 4. Regiones
-  charts.region = new Chart(document.getElementById('chartRegion'), {
-    type: 'polarArea',
-    data: {
-      labels: DATA.regiones.labels,
-      datasets: [{ data: DATA.regiones.ventas,
-        backgroundColor: COLORS.map(c=>c+'bb'), borderColor: COLORS, borderWidth:1.5 }]
-    },
-    options: { responsive:true,
-      plugins:{ legend:{position:'bottom', labels:{color:'#8892a4', font:{size:11}}} },
-      scales:{ r:{ticks:{color:'#8892a4', backdropColor:'transparent'},
-                  grid:{color:'#2a2d3e'}} } }
-  });
+const mColors = prodData.map(p => p.margen>=50?C.green:p.margen>=30?C.yellow:C.red);
+new Chart(document.getElementById('cMargen'),{
+  type:'bar',
+  data:{ labels:prodData.map(p=>p.prod),
+    datasets:[{ data:prodData.map(p=>p.margen), backgroundColor:mColors, borderRadius:6 }] },
+  options:{ responsive:true, plugins:{legend:{display:false}},
+    scales:{ x:{ticks:tickOpts,grid:{display:false}},
+             y:{ticks:{...tickOpts,callback:v=>v+'%'},grid,max:75} } }
+});
 
-  // 5. Margen semaforo
-  const margenColors = DATA.categorias.margen.map(v =>
-    v>=40 ? '#10b981' : v>=25 ? '#f59e0b' : '#ef4444');
-  charts.margen = new Chart(document.getElementById('chartMargen'), {
-    type: 'bar',
-    data: {
-      labels: DATA.categorias.labels,
-      datasets: [{ label:'Margen %', data: DATA.categorias.margen,
-        backgroundColor: margenColors, borderRadius:6 }]
-    },
-    options: { responsive:true,
-      plugins:{ legend:{display:false},
-        annotation:{} },
-      scales: {
-        x:{ticks:{color:'#8892a4'}, grid:{display:false}},
-        y:{ticks:{color:'#8892a4', callback:v=>v+'%'}, grid:{color:'#1e2132'}, max:80}
-      } }
-  });
-}
+const total497 = prodData.reduce((s,p)=>s+p.util,0);
+document.getElementById('tbUtilidad').innerHTML = prodData.map(p=>{
+  const pct = (p.util/total497*100).toFixed(1);
+  const cl = p.margen>=50?'pill-g':p.margen>=30?'pill-y':'pill-r';
+  const lbl = p.margen>=50?'Alto':p.margen>=30?'Medio':'Bajo';
+  return `<tr><td><b>${p.r}</b></td><td><b>${p.prod}</b></td>
+    <td>$${p.util.toLocaleString()}</td><td>${p.margen}%</td>
+    <td>${pct}% <span class="bar-s" style="width:${pct*2}px;background:${mColors[p.r-1]}"></span></td>
+    <td><span class="pill ${cl}">${lbl}</span></td></tr>`;
+}).join('');
 
-function buildTablaProductos() {
-  const total = DATA.productos.reduce((s,p)=>s+p.ventas,0)*2.5;
-  const tbody = document.getElementById('tabla-productos');
-  tbody.innerHTML = DATA.productos.map(p => {
-    const semaforoClass = p.margen>=40?'verde':p.margen>=25?'amarillo':'rojo';
-    const semaforoTxt   = p.margen>=40?'Verde':p.margen>=25?'Amarillo':'Rojo';
-    const barW = Math.round(p.pct * 8);
-    return `<tr>
-      <td><b>${p.r}</b></td>
-      <td>${p.prod}</td>
-      <td>${p.cat}</td>
-      <td><b>${fmtFull(p.ventas)}</b></td>
-      <td>${p.uni.toLocaleString()}</td>
-      <td>${p.margen}%</td>
-      <td>${p.pct}% <span class="bar-mini" style="width:${barW*3}px;margin-left:6px"></span></td>
-      <td>${p.acum}%</td>
-      <td><span class="pill ${semaforoClass}">${semaforoTxt}</span></td>
-    </tr>`;
-  }).join('');
-}
+// ════════════════════════════════
+// PANEL 3 — PASAJEROS
+// ════════════════════════════════
+const aerol = [
+  {nom:'Volaris',      p19:15310298, p20:8580707,  var:-47.42, part:38.14},
+  {nom:'Vivaaerobus',  p19:9791244,  p20:5993580,  var:-38.80, part:33.60},
+  {nom:'Interjet',     p19:9611310,  p20:2469919,  var:-74.32, part:8.89},
+  {nom:'Aeroméxico',   p19:4900645,  p20:2884894,  var:-41.13, part:11.48},
+  {nom:'Magnicharters',p19:863063,   p20:279979,   var:-67.56, part:1.11},
+  {nom:'Aeromar',      p19:720836,   p20:296551,   var:-58.84, part:1.28},
+  {nom:'TAR',          p19:510637,   p20:169174,   var:-66.83, part:0.63},
+  {nom:'Aéreo Calafia',p19:242592,   p20:62027,    var:-74.43, part:0.25},
+];
 
-function buildTablaVendedores() {
-  const totalV = DATA.vendedores.reduce((s,v)=>s+v.ventas,0);
-  const tbody = document.getElementById('tabla-vendedores');
-  tbody.innerHTML = DATA.vendedores.map(v => {
-    const pct = (v.ventas/totalV*100).toFixed(1);
-    const barW = Math.round(pct*2.5);
-    return `<tr>
-      <td><b>${v.r}</b></td>
-      <td><b>${v.nom}</b></td>
-      <td>${v.reg}</td>
-      <td>${fmtFull(v.ventas)}</td>
-      <td>${v.margen}%</td>
-      <td>${v.tx}</td>
-      <td>$${v.ticket.toLocaleString()}</td>
-      <td>${pct}% <span class="bar-mini" style="width:${barW}px;margin-left:6px;background:var(--accent2)"></span></td>
-    </tr>`;
-  }).join('');
-}
+new Chart(document.getElementById('cPasajeros'),{
+  type:'bar',
+  data:{ labels:aerol.map(a=>a.nom),
+    datasets:[
+      { label:'2019', data:aerol.map(a=>a.p19/1e6), backgroundColor:C.blue+'99', borderRadius:4 },
+      { label:'2020', data:aerol.map(a=>a.p20/1e6), backgroundColor:C.teal+'99', borderRadius:4 }
+    ]},
+  options:{ responsive:true,
+    plugins:{ legend:{labels:legendOpts.labels} },
+    scales:{ x:{ticks:{...tickOpts,maxRotation:30},grid}, y:{ticks:{...tickOpts,callback:v=>v+'M'},grid} } }
+});
 
-function updateCharts() {
-  // En un dashboard real aqui filtrarias los datos
-  // Para el portfolio los charts se mantienen con datos de muestra
-}
+donutChart('cParticipacion',
+  aerol.map(a=>a.nom), aerol.map(a=>a.part),
+  [C.blue,C.teal,C.purple,C.yellow,C.green,C.red,C.cyan,C.ind]
+);
 
-// INIT
-buildCharts();
-buildTablaProductos();
-buildTablaVendedores();
+document.getElementById('tbPasajeros').innerHTML = aerol.map(a=>{
+  const cl = a.var>-45?'pill-y':'pill-r';
+  return `<tr><td><b>${a.nom}</b></td>
+    <td>${a.p19.toLocaleString()}</td><td>${a.p20.toLocaleString()}</td>
+    <td><span class="pill ${cl}">${a.var}%</span></td>
+    <td>${a.part}%</td></tr>`;
+}).join('');
+
+// ════════════════════════════════
+// PANEL 4 — BOSTON POLICE
+// ════════════════════════════════
+lineChart('cBoston',
+  ['2010','2011','2012','2013','2014','2015','2016','2017','2018','2019','2020'],
+  [
+    { label:'BPD Median', data:[107,109,112,115,120,126,132,138,144,149,153],
+      borderColor:C.blue, backgroundColor:C.blue+'22', fill:true, tension:.4, pointRadius:4, borderWidth:2.5 },
+    { label:'Fire Dept',  data:[98,100,102,105,108,112,116,120,124,128,132],
+      borderColor:C.teal, tension:.4, pointRadius:4, borderWidth:2, fill:false }
+  ]
+);
+
+new Chart(document.getElementById('cForecast'),{
+  type:'bar',
+  data:{
+    labels:['T1 2015','T2 2015','T3 2015','T4 2015'],
+    datasets:[
+      { label:'Actual',     data:[972585,1051773,null,null],    backgroundColor:C.blue+'bb', borderRadius:6 },
+      { label:'Estimación', data:[null,null,946798,946798],     backgroundColor:C.yellow+'bb', borderRadius:6 }
+    ]},
+  options:{ responsive:true, plugins:{ legend:{labels:legendOpts.labels} },
+    scales:{ x:{ticks:tickOpts,grid:{display:false}},
+             y:{ticks:{...tickOpts,callback:v=>'$'+(v/1e6).toFixed(1)+'M'},grid} } }
+});
+
+// ════════════════════════════════
+// PANEL 5 — SKILLS
+// ════════════════════════════════
+const skills = [
+  { name:'Tableau Desktop', sub:'Visualización & Analytics', icon:'TD', color:'#0ea5e9', pct:98, cat:'Visualización' },
+  { name:'Power BI',        sub:'Microsoft BI Suite',        icon:'PB', color:'#f59e0b', pct:95, cat:'Visualización' },
+  { name:'Qlik Sense',      sub:'Asociative Analytics',      icon:'QS', color:'#8b5cf6', pct:90, cat:'Visualización' },
+  { name:'SQL Server',      sub:'RDBMS & T-SQL',             icon:'SS', color:'#10b981', pct:95, cat:'Base de datos' },
+  { name:'Tableau Prep',    sub:'ETL & Data Wrangling',      icon:'TP', color:'#14b8a6', pct:92, cat:'ETL' },
+  { name:'ERwin DM',        sub:'Data Modeling',             icon:'ER', color:'#6366f1', pct:80, cat:'Modelado' },
+];
+document.getElementById('skillsGrid').innerHTML = skills.map(s=>`
+  <div class="skill-card">
+    <div class="skill-header">
+      <div class="skill-icon" style="background:${s.color}22;color:${s.color}">${s.icon}</div>
+      <div><div class="skill-name">${s.name}</div><div class="skill-sub">${s.sub}</div></div>
+    </div>
+    <div class="skill-bar-wrap">
+      <div class="skill-bar-label"><span>Nivel</span><span>${s.pct}%</span></div>
+      <div class="skill-bar-bg"><div class="skill-bar-fill" style="width:${s.pct}%;background:${s.color}"></div></div>
+    </div>
+  </div>`).join('');
+
+hBarChart('cSkillsBar',
+  skills.map(s=>s.name), skills.map(s=>s.pct),
+  skills.map(s=>s.color+'cc')
+);
+donutChart('cSkillsDona',
+  ['Visualización','Base de Datos','ETL','Modelado'],
+  [3,1,1,1],
+  [C.blue,C.green,C.teal,C.ind]
+);
+
+// ════════════════════════════════
+// PANEL 6 — ABOUT
+// ════════════════════════════════
+donutChart('cIndustrias',
+  ['Retail/Ventas','Aviación','Sector Público','Healthcare','Finanzas'],
+  [35,20,20,15,10],
+  [C.blue,C.teal,C.purple,C.yellow,C.green]
+);
+donutChart('cTools',
+  ['Tableau','Power BI','Qlik Sense','SQL','ERwin'],
+  [30,25,20,20,5],
+  [C.blue,C.yellow,C.purple,C.green,C.ind]
+);
+donutChart('cAnalysis',
+  ['Dashboards','ETL/Prep','Modelado','Forecasting','SQL Analytics'],
+  [30,20,15,20,15],
+  [C.blue,C.teal,C.ind,C.yellow,C.green]
+);
 </script>
 </body>
 </html>
