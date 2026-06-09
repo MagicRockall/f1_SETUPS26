@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retail Analytics Dashboard | BI Portfolio</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:       #0f1117;
+    --card:     #1a1d27;
+    --border:   #2a2d3e;
+    --accent:   #6c63ff;
+    --accent2:  #00d4aa;
+    --accent3:  #ff6584;
+    --accent4:  #ffd166;
+    --text:     #e2e8f0;
+    --muted:    #8892a4;
+    --green:    #10b981;
+    --red:      #ef4444;
+    --yellow:   #f59e0b;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, #1a1d27 0%, #12141f 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .header-left h1 { font-size:1.4rem; font-weight:700; color:var(--text); }
+  .header-left p  { font-size:.82rem; color:var(--muted); margin-top:2px; }
+  .badge { background:var(--accent); color:#fff; font-size:.7rem; padding:3px 10px; border-radius:20px; font-weight:600; }
+
+  /* FILTERS */
+  .filters {
+    padding: 16px 32px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+  }
+  .filters label { font-size:.78rem; color:var(--muted); margin-right:4px; }
+  .filters select {
+    background:#12141f; border:1px solid var(--border); color:var(--text);
+    padding:6px 12px; border-radius:8px; font-size:.82rem; cursor:pointer;
+  }
+  .filters select:focus { outline:none; border-color:var(--accent); }
+
+  /* MAIN LAYOUT */
+  main { padding: 24px 32px; display:grid; gap:20px; }
+
+  /* KPI CARDS */
+  .kpi-row { display:grid; grid-template-columns: repeat(4, 1fr); gap:16px; }
+  .kpi-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius:12px;
+    padding: 20px 22px;
+    position:relative; overflow:hidden;
+  }
+  .kpi-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  }
+  .kpi-card.blue::before   { background: var(--accent); }
+  .kpi-card.teal::before   { background: var(--accent2); }
+  .kpi-card.pink::before   { background: var(--accent3); }
+  .kpi-card.yellow::before { background: var(--accent4); }
+  .kpi-label { font-size:.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+  .kpi-value { font-size:1.9rem; font-weight:700; margin:6px 0 4px; }
+  .kpi-delta { font-size:.78rem; display:flex; align-items:center; gap:4px; }
+  .kpi-delta.up   { color:var(--green); }
+  .kpi-delta.down { color:var(--red); }
+
+  /* CHARTS ROW */
+  .charts-row { display:grid; grid-template-columns: 2fr 1fr; gap:20px; }
+  .charts-row-3 { display:grid; grid-template-columns: 1fr 1fr 1fr; gap:20px; }
+
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius:12px;
+    padding: 20px 22px;
+  }
+  .chart-title {
+    font-size:.85rem; font-weight:600; color:var(--text);
+    margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;
+  }
+  .chart-title span { font-size:.72rem; color:var(--muted); font-weight:400; }
+  .chart-wrap { position:relative; }
+
+  /* TABLE */
+  .table-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius:12px;
+    padding: 20px 22px;
+    overflow-x:auto;
+  }
+  table { width:100%; border-collapse:collapse; font-size:.82rem; }
+  thead tr { border-bottom:1px solid var(--border); }
+  th { text-align:left; padding:8px 12px; color:var(--muted); font-weight:600;
+       font-size:.73rem; text-transform:uppercase; letter-spacing:.04em; }
+  tbody tr { border-bottom:1px solid #1e2132; transition: background .15s; }
+  tbody tr:hover { background:#1e2132; }
+  td { padding:10px 12px; }
+  .pill {
+    display:inline-block; padding:2px 8px; border-radius:20px; font-size:.7rem; font-weight:600;
+  }
+  .pill.verde   { background:#064e3b; color:#6ee7b7; }
+  .pill.amarillo{ background:#451a03; color:#fcd34d; }
+  .pill.rojo    { background:#450a0a; color:#fca5a5; }
+  .bar-mini { height:6px; border-radius:3px; background:var(--accent); display:inline-block; }
+
+  /* FOOTER */
+  footer {
+    text-align:center; padding:20px; color:var(--muted); font-size:.75rem;
+    border-top:1px solid var(--border); margin-top:8px;
+  }
+  footer a { color:var(--accent); text-decoration:none; }
+
+  @media(max-width:900px){
+    .kpi-row { grid-template-columns:1fr 1fr; }
+    .charts-row,.charts-row-3 { grid-template-columns:1fr; }
+    main,.filters,header { padding-left:16px; padding-right:16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Retail Analytics Dashboard</h1>
+    <p>Portafolio BI — SQL · Power BI · Tableau · ERwin</p>
+  </div>
+  <span class="badge">LIVE DEMO</span>
+</header>
+
+<div class="filters">
+  <div>
+    <label>Año</label>
+    <select id="filtroAnio" onchange="updateCharts()">
+      <option value="all">Todos</option>
+      <option value="2024" selected>2024</option>
+    </select>
+  </div>
+  <div>
+    <label>Region</label>
+    <select id="filtroRegion" onchange="updateCharts()">
+      <option value="all">Todas</option>
+      <option>Norte</option>
+      <option>Centro</option>
+      <option>Sur</option>
+      <option>Occidente</option>
+    </select>
+  </div>
+  <div>
+    <label>Categoría</label>
+    <select id="filtroCategoria" onchange="updateCharts()">
+      <option value="all">Todas</option>
+      <option>Electronica</option>
+      <option>Ropa</option>
+      <option>Hogar</option>
+      <option>Deportes</option>
+    </select>
+  </div>
+  <div>
+    <label>Canal</label>
+    <select id="filtroCanal" onchange="updateCharts()">
+      <option value="all">Todos</option>
+      <option>Online</option>
+      <option>Tienda</option>
+    </select>
+  </div>
+</div>
+
+<main>
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi-card blue">
+      <div class="kpi-label">Ventas Netas</div>
+      <div class="kpi-value" id="kpi-ventas">$4.2M</div>
+      <div class="kpi-delta up" id="kpi-ventas-delta">▲ 12.4% vs año anterior</div>
+    </div>
+    <div class="kpi-card teal">
+      <div class="kpi-label">Margen Bruto</div>
+      <div class="kpi-value" id="kpi-margen">38.6%</div>
+      <div class="kpi-delta up" id="kpi-margen-delta">▲ 2.1 pp vs año anterior</div>
+    </div>
+    <div class="kpi-card pink">
+      <div class="kpi-label">Unidades Vendidas</div>
+      <div class="kpi-value" id="kpi-unidades">12,480</div>
+      <div class="kpi-delta up">▲ 8.7% vs año anterior</div>
+    </div>
+    <div class="kpi-card yellow">
+      <div class="kpi-label">Ticket Promedio</div>
+      <div class="kpi-value" id="kpi-ticket">$3,840</div>
+      <div class="kpi-delta down">▼ 1.2% vs año anterior</div>
+    </div>
+  </div>
+
+  <!-- Ventas mensuales + Canal Mix -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="chart-title">Ventas Mensuales <span>Ingresos netos MXN</span></div>
+      <div class="chart-wrap"><canvas id="chartMensual" height="110"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Mix de Canal <span>% participacion</span></div>
+      <div class="chart-wrap"><canvas id="chartCanal" height="200"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Categorias + Regiones + Margen semaforo -->
+  <div class="charts-row-3">
+    <div class="chart-card">
+      <div class="chart-title">Ventas por Categoría</div>
+      <div class="chart-wrap"><canvas id="chartCategoria" height="200"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Ventas por Región</div>
+      <div class="chart-wrap"><canvas id="chartRegion" height="200"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Margen por Categoría <span>Semáforo</span></div>
+      <div class="chart-wrap"><canvas id="chartMargen" height="200"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Top Productos tabla -->
+  <div class="table-card">
+    <div class="chart-title" style="margin-bottom:14px">Top 10 Productos — Pareto de Ventas</div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>Producto</th><th>Categoría</th><th>Ventas Netas</th>
+          <th>Unidades</th><th>Margen %</th><th>% del Total</th>
+          <th>% Acumulado</th><th>Rentabilidad</th>
+        </tr>
+      </thead>
+      <tbody id="tabla-productos"></tbody>
+    </table>
+  </div>
+
+  <!-- Ranking Vendedores -->
+  <div class="table-card">
+    <div class="chart-title" style="margin-bottom:14px">Ranking Vendedores</div>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Vendedor</th><th>Region</th><th>Ventas Netas</th>
+            <th>Margen</th><th>Transacciones</th><th>Ticket Prom.</th><th>Participacion</th></tr>
+      </thead>
+      <tbody id="tabla-vendedores"></tbody>
+    </table>
+  </div>
+
+</main>
+
+<footer>
+  Portafolio BI &nbsp;|&nbsp; SQL · Power BI · Tableau · ERwin &nbsp;|&nbsp;
+  Datos: Retail México 2024 &nbsp;|&nbsp;
+  <a href="https://github.com/MagicRockall/f1_SETUPS26" target="_blank">GitHub</a>
+</footer>
+
+<script>
+// ============================================================
+// DATOS DE MUESTRA (generados desde ventas_retail.csv)
+// ============================================================
+const DATA = {
+  meses: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
+  ventasMes: [842000,768000,895000,720000,980000,760000,830000,910000,850000,920000,1100000,850000],
+  ventasMesAnterior: [750000,690000,800000,640000,880000,680000,740000,820000,760000,830000,990000,760000],
+  categorias: {
+    labels: ['Electronica','Ropa','Hogar','Deportes'],
+    ventas:  [1850000, 1200000, 980000, 620000],
+    margen:  [42.1, 61.4, 35.8, 48.2]
+  },
+  regiones: {
+    labels: ['Centro','Norte','Occidente','Sur'],
+    ventas:  [1680000, 1420000, 1100000, 920000]
+  },
+  canal: { online: 54, tienda: 46 },
+  productos: [
+    {r:1, prod:'MacBook Pro 14', cat:'Electronica', ventas:225000, uni:5,  margen:26.7, pct:5.4, acum:5.4},
+    {r:2, prod:'iPhone 15 Pro Max',cat:'Electronica',ventas:208791,uni:9, margen:27.6, pct:5.0, acum:10.4},
+    {r:3, prod:'iPhone 15',       cat:'Electronica',ventas:193596,uni:27, margen:25.4, pct:4.6, acum:15.0},
+    {r:4, prod:'Recamara Completa',cat:'Hogar',      ventas:152400,uni:6, margen:31.3, pct:3.6, acum:18.6},
+    {r:5, prod:'Sofa 3 Piezas',   cat:'Hogar',       ventas:121120,uni:4,  margen:31.8, pct:2.9, acum:21.5},
+    {r:6, prod:'Caminadora',      cat:'Deportes',    ventas:118800,uni:3,  margen:31.8, pct:2.8, acum:24.3},
+    {r:7, prod:'Samsung S24+',    cat:'Electronica', ventas:109989,uni:11, margen:27.5, pct:2.6, acum:26.9},
+    {r:8, prod:'MacBook Air M2',  cat:'Electronica', ventas:114000,uni:4,  margen:26.3, pct:2.7, acum:29.6},
+    {r:9, prod:'Freidora Aire',   cat:'Hogar',       ventas:83600, uni:40, margen:60.2, pct:2.0, acum:31.6},
+    {r:10,prod:'KitchenAid',      cat:'Hogar',       ventas:108000,uni:9,  margen:37.5, pct:2.6, acum:34.2},
+  ],
+  vendedores: [
+    {r:1, nom:'Carlos Mendez',   reg:'Norte',     ventas:980000, margen:38.2, tx:18, ticket:54444},
+    {r:2, nom:'Ana Torres',      reg:'Centro',    ventas:860000, margen:42.1, tx:16, ticket:53750},
+    {r:3, nom:'Marco Silva',     reg:'Centro',    ventas:820000, margen:37.8, tx:14, ticket:58571},
+    {r:4, nom:'Sofia Reyes',     reg:'Occidente', ventas:790000, margen:39.5, tx:15, ticket:52667},
+    {r:5, nom:'Luis Ruiz',       reg:'Sur',       ventas:680000, margen:41.3, tx:14, ticket:48571},
+    {r:6, nom:'Patricia Lopez',  reg:'Sur',       ventas:540000, margen:36.2, tx:10, ticket:54000},
+    {r:7, nom:'Roberto Diaz',    reg:'Norte',     ventas:480000, margen:43.8, tx:9,  ticket:53333},
+    {r:8, nom:'Carmen Vega',     reg:'Occidente', ventas:460000, margen:44.2, tx:8,  ticket:57500},
+    {r:9, nom:'Elena Castro',    reg:'Centro',    ventas:380000, margen:38.9, tx:7,  ticket:54286},
+  ]
+};
+
+const COLORS = ['#6c63ff','#00d4aa','#ff6584','#ffd166','#a78bfa','#34d399','#fb7185','#60a5fa'];
+const fmt = n => '$' + (n >= 1e6 ? (n/1e6).toFixed(1)+'M' : (n/1e3).toFixed(0)+'K');
+const fmtFull = n => '$' + n.toLocaleString('es-MX');
+
+// ---- CHARTS ----
+let charts = {};
+
+function buildCharts() {
+  // 1. Ventas mensuales — bar + line
+  charts.mensual = new Chart(document.getElementById('chartMensual'), {
+    type: 'bar',
+    data: {
+      labels: DATA.meses,
+      datasets: [
+        { label:'2024', data: DATA.ventasMes, backgroundColor: '#6c63ff99', borderColor:'#6c63ff', borderWidth:1.5, borderRadius:6 },
+        { label:'2023', data: DATA.ventasMesAnterior, type:'line', borderColor:'#00d4aa', borderWidth:2, pointRadius:3, fill:false, tension:.4 }
+      ]
+    },
+    options: { responsive:true, plugins:{ legend:{labels:{color:'#8892a4',font:{size:11}}} },
+      scales:{ x:{ticks:{color:'#8892a4'}, grid:{color:'#1e2132'}},
+               y:{ticks:{color:'#8892a4', callback:v=>fmt(v)}, grid:{color:'#1e2132'}} } }
+  });
+
+  // 2. Canal donut
+  charts.canal = new Chart(document.getElementById('chartCanal'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Online','Tienda'],
+      datasets: [{ data:[DATA.canal.online, DATA.canal.tienda],
+        backgroundColor:['#6c63ff','#00d4aa'], borderWidth:0, hoverOffset:8 }]
+    },
+    options: { responsive:true, cutout:'72%',
+      plugins:{ legend:{position:'bottom', labels:{color:'#8892a4', padding:16, font:{size:12}}},
+        tooltip:{callbacks:{label:c=>' '+c.label+': '+c.parsed+'%'}} } }
+  });
+
+  // 3. Categorias horizontal bar
+  charts.categoria = new Chart(document.getElementById('chartCategoria'), {
+    type: 'bar',
+    data: {
+      labels: DATA.categorias.labels,
+      datasets: [{ label:'Ventas', data: DATA.categorias.ventas,
+        backgroundColor: COLORS, borderRadius:6 }]
+    },
+    options: { indexAxis:'y', responsive:true,
+      plugins:{ legend:{display:false} },
+      scales:{ x:{ticks:{color:'#8892a4', callback:v=>fmt(v)}, grid:{color:'#1e2132'}},
+               y:{ticks:{color:'#8892a4'}, grid:{display:false}} } }
+  });
+
+  // 4. Regiones
+  charts.region = new Chart(document.getElementById('chartRegion'), {
+    type: 'polarArea',
+    data: {
+      labels: DATA.regiones.labels,
+      datasets: [{ data: DATA.regiones.ventas,
+        backgroundColor: COLORS.map(c=>c+'bb'), borderColor: COLORS, borderWidth:1.5 }]
+    },
+    options: { responsive:true,
+      plugins:{ legend:{position:'bottom', labels:{color:'#8892a4', font:{size:11}}} },
+      scales:{ r:{ticks:{color:'#8892a4', backdropColor:'transparent'},
+                  grid:{color:'#2a2d3e'}} } }
+  });
+
+  // 5. Margen semaforo
+  const margenColors = DATA.categorias.margen.map(v =>
+    v>=40 ? '#10b981' : v>=25 ? '#f59e0b' : '#ef4444');
+  charts.margen = new Chart(document.getElementById('chartMargen'), {
+    type: 'bar',
+    data: {
+      labels: DATA.categorias.labels,
+      datasets: [{ label:'Margen %', data: DATA.categorias.margen,
+        backgroundColor: margenColors, borderRadius:6 }]
+    },
+    options: { responsive:true,
+      plugins:{ legend:{display:false},
+        annotation:{} },
+      scales: {
+        x:{ticks:{color:'#8892a4'}, grid:{display:false}},
+        y:{ticks:{color:'#8892a4', callback:v=>v+'%'}, grid:{color:'#1e2132'}, max:80}
+      } }
+  });
+}
+
+function buildTablaProductos() {
+  const total = DATA.productos.reduce((s,p)=>s+p.ventas,0)*2.5;
+  const tbody = document.getElementById('tabla-productos');
+  tbody.innerHTML = DATA.productos.map(p => {
+    const semaforoClass = p.margen>=40?'verde':p.margen>=25?'amarillo':'rojo';
+    const semaforoTxt   = p.margen>=40?'Verde':p.margen>=25?'Amarillo':'Rojo';
+    const barW = Math.round(p.pct * 8);
+    return `<tr>
+      <td><b>${p.r}</b></td>
+      <td>${p.prod}</td>
+      <td>${p.cat}</td>
+      <td><b>${fmtFull(p.ventas)}</b></td>
+      <td>${p.uni.toLocaleString()}</td>
+      <td>${p.margen}%</td>
+      <td>${p.pct}% <span class="bar-mini" style="width:${barW*3}px;margin-left:6px"></span></td>
+      <td>${p.acum}%</td>
+      <td><span class="pill ${semaforoClass}">${semaforoTxt}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function buildTablaVendedores() {
+  const totalV = DATA.vendedores.reduce((s,v)=>s+v.ventas,0);
+  const tbody = document.getElementById('tabla-vendedores');
+  tbody.innerHTML = DATA.vendedores.map(v => {
+    const pct = (v.ventas/totalV*100).toFixed(1);
+    const barW = Math.round(pct*2.5);
+    return `<tr>
+      <td><b>${v.r}</b></td>
+      <td><b>${v.nom}</b></td>
+      <td>${v.reg}</td>
+      <td>${fmtFull(v.ventas)}</td>
+      <td>${v.margen}%</td>
+      <td>${v.tx}</td>
+      <td>$${v.ticket.toLocaleString()}</td>
+      <td>${pct}% <span class="bar-mini" style="width:${barW}px;margin-left:6px;background:var(--accent2)"></span></td>
+    </tr>`;
+  }).join('');
+}
+
+function updateCharts() {
+  // En un dashboard real aqui filtrarias los datos
+  // Para el portfolio los charts se mantienen con datos de muestra
+}
+
+// INIT
+buildCharts();
+buildTablaProductos();
+buildTablaVendedores();
+</script>
+</body>
+</html>
