@@ -115,29 +115,41 @@ section{padding:110px 80px;position:relative}
 .tool-card:hover::before{opacity:1}
 .tool-card.revealed{opacity:1;transform:rotateY(0deg) translateY(0) scale(1)}
 .tool-card:hover{background:#0e0e0e;box-shadow:inset 0 0 0 1px rgba(14,165,233,.18),0 20px 60px rgba(0,0,0,.6)}
-/* 3D icon */
-.tc-icon{
-  width:52px;height:52px;border-radius:16px;margin-bottom:16px;
-  display:flex;align-items:center;justify-content:center;
-  font-weight:900;font-size:.88rem;position:relative;
-  transform-style:preserve-3d;
-  box-shadow:0 8px 24px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.14);
-  transition:transform .5s cubic-bezier(.25,.46,.45,.94);
-}
-.tc-icon img{width:27px;height:27px;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5));display:block}
-.tc-icon .fb{font-weight:900;font-size:.82rem;letter-spacing:.02em}
-.tc-icon::before{
-  content:'';position:absolute;inset:0;border-radius:16px;
-  background:linear-gradient(135deg,rgba(255,255,255,.18) 0%,transparent 55%);pointer-events:none;
-}
-.tool-card:hover .tc-icon{transform:rotateY(15deg) rotateX(-8deg) scale(1.12)}
+/* 3D icon — defined below with full animation set */
 .tc-name{font-size:.9rem;font-weight:700;margin-bottom:5px}
 .tc-cat{font-size:.63rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;opacity:.4}
 .tc-bar{height:3px;border-radius:2px;margin-top:14px;background:rgba(255,255,255,.08);overflow:hidden}
 .tc-fill{height:3px;border-radius:2px;background:var(--grad);transform:scaleX(0);transform-origin:left;transition:transform 1.2s cubic-bezier(.16,1,.3,1)}
 .tool-card.revealed .tc-fill{transform:scaleX(1)}
 @keyframes iconFloat{0%,100%{transform:rotateY(0) rotateX(0) translateZ(0)}50%{transform:rotateY(10deg) rotateX(-5deg) translateZ(10px)}}
-.tool-card.revealed .tc-icon{animation:iconFloat 6s ease-in-out infinite}
+@keyframes iconGlow{0%,100%{box-shadow:0 8px 24px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.14),0 0 0 0 var(--glow,#0ea5e955)}60%{box-shadow:0 8px 24px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.14),0 0 22px 6px var(--glow,#0ea5e955)}}
+@keyframes iconScan{0%{background-position:0% -100%}100%{background-position:0% 200%}}
+@keyframes iconReveal{0%{opacity:0;transform:rotateY(-90deg) scale(.7)}60%{transform:rotateY(12deg) scale(1.05)}100%{opacity:1;transform:rotateY(0) scale(1)}}
+.tc-icon{
+  width:52px;height:52px;border-radius:16px;margin-bottom:16px;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:.88rem;position:relative;overflow:hidden;
+  transform-style:preserve-3d;
+  box-shadow:0 8px 24px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.14);
+  transition:transform .5s cubic-bezier(.25,.46,.45,.94),box-shadow .4s;
+}
+.tc-icon img,.tc-icon svg{width:28px;height:28px;object-fit:contain;display:block;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5));position:relative;z-index:2}
+.tc-icon .fb{font-weight:900;font-size:.85rem;letter-spacing:.02em;position:relative;z-index:2}
+/* Shimmer scan line */
+.tc-icon::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,transparent 0%,rgba(255,255,255,.18) 50%,transparent 100%);
+  background-size:100% 40px;
+  opacity:0;transition:opacity .3s;
+  animation:iconScan 2s linear infinite;
+}
+.tc-icon::before{
+  content:'';position:absolute;inset:0;border-radius:16px;
+  background:linear-gradient(135deg,rgba(255,255,255,.18) 0%,transparent 55%);pointer-events:none;z-index:3;
+}
+.tool-card:hover .tc-icon::after{opacity:1}
+.tool-card:hover .tc-icon{transform:rotateY(15deg) rotateX(-8deg) scale(1.14);animation:iconGlow 2.4s ease-in-out infinite !important}
+.tc-icon.icon-loaded{animation:iconReveal .7s cubic-bezier(.16,1,.3,1) forwards,iconFloat 7s 1s ease-in-out infinite,iconGlow 5s 2s ease-in-out infinite}
 
 /* ── PROJECTS ── */
 #projects{background:#000;overflow:hidden;padding-bottom:0}
@@ -878,53 +890,79 @@ track.addEventListener('touchstart',e=>ts=e.touches[0].clientX);
 track.addEventListener('touchend',e=>{const d=ts-e.changedTouches[0].clientX;if(Math.abs(d)>50)d>0?document.getElementById('projNext').click():document.getElementById('projPrev').click()});
 
 // ── TOOL LOGOS ──
+// Each entry: [simpleicons_slug, hex_color, fallback_svg_path]
+// Fallback SVGs are inline data-URIs — always render even offline
+const svgWrap=(path,hex)=>`data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23${hex}' d='${path}'/%3E%3C/svg%3E`;
+// Verified Simple Icons slugs + guaranteed SVG fallbacks
 const LOGOS={
-  'Tableau Desktop':         ['tableau','38bdf8','TD'],
-  'Power BI':                ['powerbi','fbbf24','PB'],
-  'Qlik Sense / View':       ['qlik','a78bfa','QK'],
-  'Domo':                    ['domo','34d399','DM'],
-  'Looker':                  ['looker','2dd4bf','LK'],
-  'QuickSight (AWS)':        ['amazonwebservices','fca5a5','QS'],
-  'Sisense':                 ['sisense','818cf8','SS'],
-  'Databricks + PySpark':    ['databricks','ff8c5a','DB'],
-  'Snowflake':               ['snowflake','4fc3f7','SF'],
-  'Microsoft Fabric':        ['microsoftazure','4fc3f7','MF'],
-  'Alteryx ETL':             ['alteryx','4dd0e1','AX'],
-  'Tableau Prep':            ['tableau','2dd4bf','TP'],
-  'SQL Server / SSIS':       ['microsoftsqlserver','34d399','SS'],
-  'Azure / AWS S3':          ['microsoftazure','ffbb44','AZ'],
-  'Python · DAX · SQL':      ['python','c4b5fd','PY'],
-  'Medallion · Delta Lake':  ['apachespark','67e8f9','MD'],
-  'Google Cloud — BigQuery': ['googlebigquery','4285f4','BQ'],
-  'Vertex AI · Looker Studio':['googlecloud','ea4335','AI'],
-  'Oracle Cloud — OCI':      ['oracle','f86b2d','OC'],
-  'Teradata Vantage':        ['teradata','00afd7','TV'],
-  'dbt Cloud':               ['dbt','ff6943','dbt'],
-  'Fivetran / Airbyte':      ['fivetran','615ef0','FV'],
-  'Confluent Cloud — Kafka': ['apachekafka','0082ca','KF'],
-  'Airflow / Astronomer':    ['apacheairflow','017cee','AF'],
-  'IBM Cloud · Db2 DWH':     ['ibm','05c277','IBM'],
+  'Tableau Desktop':          {s:'tableau',          c:'38bdf8', f:svgWrap('M11 2v4H7v3h4v4h3v-4h4V6h-4V2zm1 11l-5 9h3l2-4 2 4h3z','38bdf8')},
+  'Power BI':                 {s:'powerbi',           c:'fbbf24', f:svgWrap('M3 18h3V9H3zm4 0h3v-6H7zm4 0h3V6h-3zm4 0h3v-9h-3z','fbbf24')},
+  'Qlik Sense / View':        {s:'qlik',              c:'a78bfa', f:svgWrap('M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2zm0-8h-2V7h2z','a78bfa')},
+  'Domo':                     {s:'domo',              c:'34d399', f:svgWrap('M5 4h5.5C14.6 4 18 7.4 18 12s-3.4 8-7.5 8H5V4zm3.5 3v10H10c2.5 0 4.5-2 4.5-5s-2-5-4.5-5H8.5z','34d399')},
+  'Looker':                   {s:'looker',            c:'2dd4bf', f:svgWrap('M12 2C8.1 2 5 5.1 5 9c0 2.6 1.4 4.9 3.5 6.2L12 22l3.5-6.8C17.6 13.9 19 11.6 19 9c0-3.9-3.1-7-7-7zm0 9.5c-1.4 0-2.5-1.1-2.5-2.5S10.6 6.5 12 6.5s2.5 1.1 2.5 2.5S13.4 11.5 12 11.5z','2dd4bf')},
+  'QuickSight (AWS)':         {s:'amazonaws',         c:'fca5a5', f:svgWrap('M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.5L20 8.5v7L12 19.5 4 15.5v-7L12 4.5z','fca5a5')},
+  'Sisense':                  {s:'sisense',           c:'818cf8', f:svgWrap('M12 3C8.7 3 6 5.2 6 8c0 1.7.9 3.2 2.3 4.1C6.9 13 6 14.5 6 16.2 6 19 8.7 21 12 21s6-2 6-4.8c0-1.7-.9-3.2-2.3-4.1C17.1 11.2 18 9.7 18 8c0-2.8-2.7-5-6-5zm0 2.5c1.8 0 3.2.9 3.2 2.5S13.8 10.5 12 10.5 8.8 9.6 8.8 8s1.4-2.5 3.2-2.5zm0 10c1.8 0 3.2.9 3.2 2.5S13.8 20.5 12 20.5s-3.2-.9-3.2-2.5 1.4-2.5 3.2-2.5z','818cf8')},
+  'Databricks + PySpark':     {s:'databricks',        c:'ff8c5a', f:svgWrap('M12 2l9 5-9 5-9-5 9-5zm0 8l9 5-9 5-9-5 9-5zm-9 7l9 5 9-5','ff8c5a')},
+  'Snowflake':                {s:'snowflake',         c:'4fc3f7', f:svgWrap('M12 2v20M2 12h20M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4M12 6l-2-2 2-2 2 2zM12 18l-2 2 2 2 2-2zM6 12l-2-2 2-2 2 2zM18 12l-2 2 2 2 2-2z','4fc3f7')},
+  'Microsoft Fabric':         {s:'microsoftfabric',   c:'4fc3f7', f:svgWrap('M3 5h7v7H3zm11 0h7v7h-7zM3 16h7v7H3zm11 0h7v7h-7z','4fc3f7')},
+  'Alteryx ETL':              {s:'alteryx',           c:'4dd0e1', f:svgWrap('M12 2L4 20h4l1.5-4h5L16 20h4L12 2zm0 5.5L14 13h-4l2-5.5z','4dd0e1')},
+  'Tableau Prep':             {s:'tableau',           c:'2dd4bf', f:svgWrap('M11 2v4H7v3h4v4h3v-4h4V6h-4V2h-3zm1 11l-5 9h3l2-4 2 4h3z','2dd4bf')},
+  'SQL Server / SSIS':        {s:'microsoftsqlserver',c:'34d399', f:svgWrap('M12 3C7 3 3 4.8 3 7v10c0 2.2 4 4 9 4s9-1.8 9-4V7c0-2.2-4-4-9-4zm0 2.5c3.9 0 6.5 1.2 6.5 1.5S15.9 8.5 12 8.5 5.5 7.3 5.5 7s2.6-1.5 6.5-1.5z','34d399')},
+  'Azure / AWS S3':           {s:'microsoftazure',    c:'ffbb44', f:svgWrap('M13.5 2L6 13h5l-2 9 9-12h-5z','ffbb44')},
+  'Python · DAX · SQL':       {s:'python',            c:'c4b5fd', f:svgWrap('M12 2C9.2 2 7 4 7 6.5v1.5H5C3.3 8 2 9.3 2 11v4c0 1.7 1.3 3 3 3h2v1.5C7 22 9.2 24 12 24s5-2 5-4.5V18h2c1.7 0 3-1.3 3-3v-4c0-1.7-1.3-3-3-3h-2V6.5C17 4 14.8 2 12 2zm0 2c1.7 0 3 1.1 3 2.5V8h-6V6.5C9 5.1 10.3 4 12 4zm-1.5 3.5a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5zM5 10h14c.6 0 1 .4 1 1v4c0 .6-.4 1-1 1H5c-.6 0-1-.4-1-1v-4c0-.6.4-1 1-1zm7 .5c-1.7 0-3 1.1-3 2.5s1.3 2.5 3 2.5 3-1.1 3-2.5-1.3-2.5-3-2.5zm0 1c1.1 0 1.5.7 1.5 1.5S13.1 15 12 15s-1.5-.7-1.5-1.5.4-1.5 1.5-1.5z','c4b5fd')},
+  'Medallion · Delta Lake':   {s:'apachespark',       c:'67e8f9', f:svgWrap('M13 2l-8 14h5l-2 6 10-16h-5z','67e8f9')},
+  'Google Cloud — BigQuery':  {s:'googlebigquery',    c:'4285f4', f:svgWrap('M12 3C7 3 3 7 3 12s4 9 9 9 9-4 9-9-4-9-9-9zm-1 5h2v5h-2zm0 7h2v2h-2z','4285f4')},
+  'Vertex AI · Looker Studio':{s:'googlecloud',       c:'ea4335', f:svgWrap('M12 2L4 7v10l8 5 8-5V7L12 2zm0 2.3L18 7.8v6.4l-6 3.5-6-3.5V7.8L12 4.3z','ea4335')},
+  'Oracle Cloud — OCI':       {s:'oracle',            c:'f86b2d', f:svgWrap('M12 5C8.1 5 5 8.1 5 12s3.1 7 7 7 7-3.1 7-7-3.1-7-7-7zm0 2.5c2.5 0 4.5 2 4.5 4.5s-2 4.5-4.5 4.5S7.5 14.5 7.5 12s2-4.5 4.5-4.5z','f86b2d')},
+  'Teradata Vantage':         {s:'teradata',          c:'00afd7', f:svgWrap('M3 5v3h7.5v11h3V8H21V5H3z','00afd7')},
+  'dbt Cloud':                {s:'dbt',               c:'ff6943', f:svgWrap('M12 2C7 2 3 5.4 3 9.5c0 2.4 1.3 4.6 3.4 5.9L3 22h5l2.1-3.6c.6.1 1.3.1 1.9.1 5 0 9-3.4 9-7.5S17 2 12 2zm0 3c3.3 0 6 2 6 4.5S15.3 14 12 14s-6-2-6-4.5 2.7-4.5 6-4.5z','ff6943')},
+  'Fivetran / Airbyte':       {s:'fivetran',          c:'615ef0', f:svgWrap('M5 3h14v4l-6 6 6 6v4H5v-4l6-6-6-6V3z','615ef0')},
+  'Confluent Cloud — Kafka':  {s:'apachekafka',       c:'0082ca', f:svgWrap('M12 2a3 3 0 0 0-3 3 3 3 0 0 0 1.5 2.6L7 11a3 3 0 0 0-2 2.8 3 3 0 0 0 3 3 3 3 0 0 0 2.5-1.3l1.5 3A3 3 0 0 0 9 21a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-.5 0L10.5 15A3 3 0 0 0 13 12a3 3 0 0 0-1-2.2l3.5-3.5A3 3 0 0 0 17 5a3 3 0 0 0-3-3 3 3 0 0 0-2 .8z','0082ca')},
+  'Airflow / Astronomer':     {s:'apacheairflow',     c:'017cee', f:svgWrap('M12 2L3 7l9 5 9-5L12 2zM3 17l9 5 9-5M3 12l9 5 9-5','017cee')},
+  'IBM Cloud · Db2 DWH':      {s:'ibm',              c:'05c277', f:svgWrap('M3 7h18v2H3zm2 4h14v2H5zm-2 4h18v2H3z','05c277')},
 };
-const BASE='https://cdn.simpleicons.org/';
+
+function loadToolIcon(iconEl, entry, hex){
+  // Try Simple Icons CDN first, fall back to inline SVG
+  const img = document.createElement('img');
+  img.src = `https://cdn.simpleicons.org/${entry.s}/${hex}`;
+  img.alt=''; img.width=28; img.height=28;
+  img.onload = ()=>{
+    iconEl.textContent='';
+    iconEl.appendChild(img);
+    iconEl.style.setProperty('--glow','#'+hex+'66');
+    setTimeout(()=>iconEl.classList.add('icon-loaded'), 10);
+  };
+  img.onerror = ()=>{
+    // Guaranteed fallback: inline SVG data URI
+    const fb = document.createElement('img');
+    fb.src = entry.f;
+    fb.alt=''; fb.width=28; fb.height=28;
+    iconEl.textContent='';
+    iconEl.appendChild(fb);
+    iconEl.style.setProperty('--glow','#'+hex+'66');
+    setTimeout(()=>iconEl.classList.add('icon-loaded'), 10);
+  };
+}
+
 document.querySelectorAll('.tool-card').forEach(card=>{
   const nameEl = card.querySelector('.tc-name');
   const iconEl = card.querySelector('.tc-icon');
   if(!nameEl||!iconEl) return;
   const entry = LOGOS[nameEl.textContent.trim()];
   if(!entry) return;
-  const [slug,hex,fb] = entry;
-  const img = document.createElement('img');
-  img.src = `${BASE}${slug}/${hex}`;
-  img.alt = nameEl.textContent;
-  img.width=27; img.height=27;
-  img.onerror=function(){
-    this.remove();
-    const sp=document.createElement('span');
-    sp.className='fb'; sp.style.color='#'+hex; sp.textContent=fb;
-    iconEl.appendChild(sp);
-  };
-  iconEl.textContent='';
-  iconEl.appendChild(img);
+  loadToolIcon(iconEl, entry, entry.c);
+});
+
+// Periodic coin-flip per icon (staggered)
+document.querySelectorAll('.tc-icon').forEach((icon,i)=>{
+  setInterval(()=>{
+    icon.style.transition='transform .6s cubic-bezier(.25,.46,.45,.94)';
+    icon.style.transform='rotateY(180deg) scale(1.05)';
+    setTimeout(()=>{icon.style.transform='rotateY(360deg) scale(1)';
+      setTimeout(()=>{icon.style.transform='';icon.style.transition=''},700);
+    },350);
+  }, 8000 + i*320);
 });
 </script>
 </body>
