@@ -954,6 +954,12 @@
       "sourceType": "github",
       "skillPath": "skills/banana/SKILL.md",
       "computedHash": "82647ab3e95d9f58bfa2d12eda5e794ce3624f0826751521bc9426118d07cf74"
+    },
+    "video2website": {
+      "source": "local",
+      "sourceType": "local",
+      "skillPath": "skills/video2website/SKILL.md",
+      "computedHash": "c962560b1cb1ac20fe0265f03d202305bcd49d8f6264364658333a7c2d00275a"
     }
   }
 }
